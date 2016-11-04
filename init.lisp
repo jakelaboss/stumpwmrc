@@ -1,4 +1,3 @@
-
 ;;; init.lisp --- Vital settings and loading other files
 
 ;; Copyright © 2013-2016 Alex Kost <alezost@gmail.com>
@@ -14,21 +13,6 @@
 ;;; Code:
 
 (in-package :stumpwm)
-
-;; (defvar al/display-number
-;;   (multiple-value-bind (_ array)
-;;       (cl-ppcre:scan-to-strings ":([0-9]+)" (getenv "DISPLAY"))
-;;     (declare (ignore _))
-;;     (if (vectorp array)
-;;         (parse-integer (aref array 0))
-;;         0))
-;;   "The number of the current DISPLAY.")
-
-;; (swank:create-server
-;;  :dont-close t
-;;  :port (+ swank::default-server-port al/display-number))
-
-;;; Loading additional rc files
 
 (defvar al/init-directory
   (directory-namestring
@@ -47,9 +31,27 @@
 (set-module-dir
  (pathname-as-directory (concat (getenv "HOME")
                                 "/src/stumpwm-contrib")))
+
+;; For Creating a Swank Server to Interact with Stump
+(load "/home/arch/.emacs.d/elpa/slime-20161102.711/swank-loader.lisp")
+(swank-loader:init)
+
+;; Loading quicklisp
+;; (defvar quicklisp-path "~/quicklisp")
+;; (load (concat quicklisp-path "/slime-helper"))
+
+;; (ql:quickload :swank)
+;; (ql:update-all-dists)
+;; (ql:update-client)
+
+
+;; (al/load "lisp/*")
 (al/load "lisp/startup")
+(al/load "lisp/keymap")
 (al/load "lisp/vim")
-(al/load "lisp/appearance")
+(al/load "lisp/toggle")
 (al/load "lisp/map")
+(al/load "lisp/macro")
+(al/load "lisp/appearance")
 
 ;;; init.lisp ends here

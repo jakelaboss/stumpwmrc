@@ -2,25 +2,9 @@
 ;; Mappings ;;
 ;;-------~---~----------~----------~----
 
-
 ;; Prefix Key ;;
 (set-prefix-key (kbd "C-z"))
 
-
-;; Applications ;;
-(define-key *top-map* (kbd "s-e")"exec emacs")
-
-(define-key *top-map* (kbd "s-u")"exec urxvt")
-
-(define-key *top-map* (kbd "s-F1")"exec slack")
-
-(define-key *top-map* (kbd "s--")"fclear")
-
-(define-key *top-map* (kbd "s-F2")"exec conky")
-
-(define-key *top-map* (kbd "XF86AudioPlay")"exec spotify")
-
-(define-key *top-map* (kbd "s-g")"exec google-chrome-stable")
 
 ;; Interactive Colon ;;
 (defcommand colon1 (&optional (initial "")) (:rest)
