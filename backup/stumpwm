@@ -1,0 +1,257 @@
+;; -*-lisp-*-
+;;
+;; Here is a sample .stumpwmrc file
+
+(in-package :stumpwm)
+
+;; (ql:quickload :swank)
+;; Load swank.
+;; *prefix-key* ; swank will kick this off
+;; (load "/home/arch/.emacs.d/elpa/slime-20160907.602/swank/sbcl.lisp")
+;; (swank-loader:init)
+;; (defcommand swank () ()
+;;   (swank:create-server :port 4005
+;;                        :style swank:*communication-style*
+;;                        :dont-close t)
+;;   (echo-string (current-screen) 
+;;                "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
+;; (swank)
+
+;; configures xrandr multihead
+;; I have the following in my ~/.stumpwmrc. It hides all windows not
+;; currently at the top of their frame.
+
+(defun hide-all-lower-windows (current last)
+  (declare (ignore current last))
+  (when (typep (current-group) 'stumpwm::tile-group)
+    (mapc (lambda (win)
+            (unless (eq win (stumpwm::frame-window
+                             (stumpwm::window-frame win)))
+              (stumpwm::hide-window win)))
+          (group-windows (current-group)))))
+
+(defcommand enable-hiding-lower-windows () ()
+  "Enable a hook that hides all windows that aren't at the top of
+      their frame.
+    This is primarily useful when you have (a) transparent window(s) and
+    want to
+    see the wallpaper underneath instead of other windows."
+  (add-hook *focus-window-hook* 'hide-all-lower-windows))
+
+;; (run-shell-command "xrandr --output HDMI-0 --mode 1920x1080  --pos 0x1080 --output  DP-1 --mode 3840x2160 --pos 1920x0 --output DVI-D-0 --mode 1920x1080 --rate 144.00 --pos 5760x1080")
+(run-shell-command "xrandr --output HDMI-0 --mode 1920x1080  --pos 0x1620 --rate 60.00 --output  DP-1 --mode 3840x2160 --pos 1920x1080 --output DVI-I-1 --mode 1920x1080 --rate 144.00  --pos 5760x1620  --output DVI-D-0 --mode 1920x1080 --pos 2880x0")
+
+;;sets of Wallpapers
+;; purple
+(run-shell-command "feh --bg-scale /home/arch/Downloads/wallpapers/4k/4k/mountains/EBSB15k.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/Kd6MY6P.jpg  /home/arch/Downloads/wallpapers/4k/4k/galaxy/9lcJsaP.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/oH1wlYb.jpg")
+
+
+;; Sets capslock to ESC key
+(run-shell-command " xmodmap -e 'clear Lock'")
+(run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
+(run-shell-command "xmodmap ~/.Xmodmap")
+
+;;(run-shell-command "sudo pia -a Brazil")
+;; switch to an already started application if it is running
+;; (defcommand emacs () ()
+;;   "run emacs"
+;;   (run-or-raise "emacs-snapshot -T emacs" '(:title "emacs")))
+;; (run-shell-command "slack")
+
+;; Urxvt, of course!
+;; (defvar *terminal* "urxvt"
+;;   "Command to start a terminal.")
+
+;;(defvar *terminal-smallfont* "urxvt -fn xft:Pragmata:size=7"
+;;  "Command to start a terminal with small font.")
+
+;;-------~---~----------~----------~----
+;; Appearance
+;;;;---~----~-~-------------~---------~---
+
+;; Colors
+;;(defun color (key) 
+;; (let ((colors '(:base00 #x1f1b18
+;;                 :base01 #x090909
+;;                 :yellow #xefaf63)))
+;;   (getf colors key)))
+;;
+;;;; Font
+(set-font "xft:DejaVu Sans")
+;;
+;;;; Message Bar
+;;(set-fg-color     (color :yellow))
+;;(set-bg-color     (color :base00))
+;;(set-border-color (color :base01))
+;;
+;;(setf *message-window-padding* 10
+;;     *message-window-gravity* :bottom-right
+;;     *input-window-gravity* :bottom-right)
+;;
+;;;; Modeline
+;;                                       ; (setf *mode-line-foreground-color* "oldlace"
+;;                                       ;       *mode-line-background-color* "dimgray"
+;;                                       ;       *mode-line-border-color*     "oldlace")
+;;
+;;;; Borders
+;;(setf *maxsize-border-width*   0
+;;     *transient-border-width* 2
+;;     *normal-border-width*    1
+;;     *window-border-style*    :thin)
+;;
+;;(set-focus-color   (color :yellow))
+;;(set-unfocus-color (color :base01))
+;;(set-win-bg-color  (color :base00))
+;;
+
+;; Message and input bar
+(setf *timeout-wait* 3)
+(setf *mode-line-timeout* 1)
+(set-font "DejaVu Sans")
+(setf *message-window-gravity* :top-right)
+(setf *suppress-frame-indicator* T)
+ 
+;; change the prefix key to something else
+(set-prefix-key (kbd "C-z"))
+
+;; prompt the user for an interactive command. The first arg is an
+;; optional initial contents.
+(defcommand colon1 (&optional (initial "")) (:rest)
+  (let ((cmd (read-one-line (current-screen) ": " :initial-input initial)))
+    (when cmd
+      (eval-command cmd t))))
+
+;; (run-shell-command "xmodmap -e 'keycode 66 = F22'")
+
+(define-key *top-map* (kbd "s-e")"exec emacs")
+
+(define-key *top-map* (kbd "s-u")"exec urxvt")
+
+(define-key *top-map* (kbd "s-F1")"exec slack")
+
+(define-key *top-map* (kbd "s--")"fclear")
+
+(define-key *top-map* (kbd "XF86AudioPlay")"exec spotify")
+
+(define-key *top-map* (kbd "s-g")"exec google-chrome-stable")
+
+(define-key *top-map* (kbd "s-b")"colon1 sudo pia -a Brazil")
+;; Document Reader
+(define-key *root-map* (kbd "z") "exec zatura /~/documents/books/lisp/")
+;; Browse somewhere
+(define-key *root-map* (kbd "b") "colon1 exec google-chrome-stable http://www.")
+;; Ssh somewhere
+(define-key *root-map* (kbd "s-s") "colon1 exec xterm -e ssh ")
+;; Lock screen
+(define-key *root-map* (kbd "C-l") "exec xlock")
+
+;; Pulse Audio Config
+(define-key *top-map* (kbd "XF86AudioRaiseVolume") "exec /usr/bin/pulseaudio-ctl up")
+(define-key *top-map* (kbd "XF86AudioLowerVolume") "exec /usr/bin/pulseaudio-ctl down")
+(define-key *top-map* (kbd "XF86AudioMute") "exec /usr/bin/pulseaudio-ctl mute")
+
+;; Web jump Macro
+(defmacro make-web-jump (name prefix)
+  `(defcommand ,(intern name) (search) ((:rest ,(concatenate 'string name " search: ")))
+    (substitute #\+ #\Space search)
+    (run-shell-command (concatenate 'string ,prefix search))))
+
+(make-web-jump "google" "google-chrome-stable http://www.google.fr/search?q=")
+(make-web-jump "imdb" "google-chrome-stable http://www.imdb.com/find?q=")
+(make-web-jump "stackoverflow" "google-chrome-stable https://www.stackoverflow.com/find?q=")
+
+(define-key *root-map* (kbd "C-f") "stackoverflow")
+(define-key *root-map* (kbd "C-s") "google")
+(define-key *root-map* (kbd "i") "imdb")
+
+;; Evil Mode for Stump using Windows Key
+
+;; Movement Mapping
+(define-key *top-map* (kbd "s-j") "move-focus down")
+(define-key *top-map* (kbd "s-h") "move-focus left")
+(define-key *top-map* (kbd "s-k") "move-focus up")
+(define-key *top-map* (kbd "s-l") "move-focus right")
+
+(define-key *top-map* (kbd "s-J") "move-window down")
+(define-key *top-map* (kbd "s-H") "move-window left")
+(define-key *top-map* (kbd "s-K") "move-window up")
+(define-key *top-map* (kbd "s-L") "move-window right")
+
+(define-key *root-map* (kbd "J") "move-window down")
+(define-key *root-map* (kbd "H") "move-window left")
+(define-key *root-map* (kbd "K") "move-window up")
+(define-key *root-map* (kbd "L") "move-window right")
+
+;; Splits and Windows
+(define-key *top-map* (kbd "s-v") "hsplit")
+(define-key *top-map* (kbd "s-s") "vsplit")
+(define-key *top-map* (kbd "s-r") "remove")
+(define-key *top-map* (kbd "s-w") "windows")
+(define-key *top-map* (kbd "s-f") "windowlist")
+(define-key *top-map* (kbd "s-x") "kill")
+(define-key *root-map* (kbd "x") "kill")
+
+;; Mouse Commands
+(define-key *top-map* (kbd "s-b")"banish")
+  
+;; Group Configuration
+(define-key *top-map* (kbd "s-N") "gnext")
+(define-key *top-map* (kbd "s-n") "pull-hidden-next")
+(define-key *top-map* (kbd "s-p") "pull-hidden-previous")
+(define-key *root-map* (kbd "N") "gnext")
+(define-key *top-map* (kbd "s-m") "fullscreen")
+
+;; Eval Commands
+(define-key *top-map* (kbd "s-;") "colon")
+(define-key *top-map* (kbd "s-:") "eval")
+
+;; (defcommand mymenu () ()
+;;   (labels ((pick (options)
+;;              (let ((selection (stumpwm::select-from-menu (current-screen) options "")))
+;;                (cond
+;;                  ((null selection)
+;;                   (throw 'stumpwm::error "Abort."))
+;;                  ((stringp (second selection))
+;;                   (second selection))
+;;                  (t
+;;                   (pick (cdr selection)))))))
+;;     (let ((choice (pick *app-menu*)))
+;;       (run-shell-command choice))))
+
+;; ;; Load up my custom menu.
+
+;; (load "~/bin/stump/my.menu")
+
+;; Postgresql Integration
+
+;; Redis Integration
+
+;; Clear rules
+(clear-window-placement-rules)
+(clear-output)
+
+;; Last rule to match takes precedence!
+;; TIP: if the argument to :title or :role begins with an ellipsis, a substring
+;; match is performed.
+;; TIP: if the :create flag is set then a missing group will be created and
+;; restored from *data-dir*/create file.
+;; TIP: if the :restore flag is set then group dump is restored even for an
+;; existing group using *data-dir*/restore file.
+(define-frame-preference "Default"
+  ;; frame raise lock (lock AND raise == jumpto)
+  (0 t nil :class "Konqueror" :role "...konqueror-mainwindow")
+  (1 t nil :class "XTerm"))
+
+;; (define-frame-preference "Emacs"
+;;   (1 t t :restore "emacs-editing-dump" :title "...xdvi")
+;;   (0 t t :create "emacs-dump" :class "Emacs"))
+
+(loop for file in '("commands"
+                    "functions"
+                    "hooks"
+                    "keymap"
+                    "remember"
+                    "websearch"
+                    "window_rules")
+      do (load (merge-pathnames (make-pathname :name file :type "lisp"
+                                               :directory '(:relative "my")) *load-dir*)))

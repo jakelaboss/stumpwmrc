@@ -3,41 +3,41 @@
 ;; ;;-------~---~----------~----------~----
 
 ;; Movement Mapping ;;
-(define-key *top-map* (kbd "s-j") "move-focus down")
-(define-key *top-map* (kbd "s-h") "move-focus left")
-(define-key *top-map* (kbd "s-k") "move-focus up")
-(define-key *top-map* (kbd "s-l") "move-focus right")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-focus down")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-focus left")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-focus right")
 
-(define-key *top-map* (kbd "s-J") "move-window down")
-(define-key *top-map* (kbd "s-H") "move-window left")
-(define-key *top-map* (kbd "s-K") "move-window up")
-(define-key *top-map* (kbd "s-L") "move-window right")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-J") "move-window down")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-H") "move-window left")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-K") "move-window up")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-L") "move-window right")
 
-(define-key *root-map* (kbd "J") "move-window down")
-(define-key *root-map* (kbd "H") "move-window left")
-(define-key *root-map* (kbd "K") "move-window up")
-(define-key *root-map* (kbd "L") "move-window right")
+(stumpwm:define-key *root-map* (stumpwm:kbd "J") "move-window down")
+(stumpwm:define-key *root-map* (stumpwm:kbd "H") "move-window left")
+(stumpwm:define-key *root-map* (stumpwm:kbd "K") "move-window up")
+(stumpwm:define-key *root-map* (stumpwm:kbd "L") "move-window right")
 
 ;; Splits WIndows and Frames
-(define-key *top-map* (kbd "s-v") "hsplit")
-(define-key *top-map* (kbd "s-s") "vsplit")
-(define-key *top-map* (kbd "s-r") "remove")
-(define-key *top-map* (kbd "s-w") "windows")
-(define-key *top-map* (kbd "s-f") "windowlist")
-(define-key *top-map* (kbd "s-q") "kill")
-(define-key *root-map* (kbd "q") "kill")
-(define-key *top-map* (kbd "s--")"fclear")
-(define-key *top-map* (kbd "s-n") "pull-hidden-next")
-(define-key *top-map* (kbd "s-p") "pull-hidden-previous")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-v") "hsplit")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-s") "vsplit")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-r") "remove")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-q") "kill")
+(stumpwm:define-key *root-map* (stumpwm:kbd "q") "kill")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s--")"fclear")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-n") "pull-hidden-next")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-p") "pull-hidden-previous")
 
 ;; Mouse Commands ;;
-(define-key *top-map* (kbd "s-b")"banish")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-b")"banish")
 
 ;; Group Configuration ;;
 ;; (define-key *top-map* (kbd "s-N") "gnext")
-(define-key *root-map* (kbd "N") "gnext")
+(stumpwm:define-key *root-map* (stumpwm:kbd "N") "gnext")
 ;; (define-key *top-map* (kbd "s-m") "fullscreen")
 
 ;; Eval Commands ;;
-(define-key *top-map* (kbd "s-;") "colon")
-(define-key *top-map* (kbd "s-:") "eval")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-;") "colon")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-:") "eval")
+
+;; (uiop:run-program "sudo mount -t ntfs-3g /dev/sd?n /where/to/mnt)

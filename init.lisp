@@ -11,8 +11,19 @@
 ;; I compile stumpwm with swank, so i don't need to load it.
 
 ;;; Code:
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 (in-package :stumpwm)
+
+(stumpwm:run-shell-command "xmodmap -e 'clear ['")
+(setf *home-dir*      (user-homedir-pathname)
+      *stump-dir*     (merge-pathnames (make-pathname :directory '(:relative ".stumpwm.d")) *home-dir*)
+      *data-dir*      (merge-pathnames (make-pathname :directory '(:relative "storage")) *stump-dir*)
+      *load-dir*      (merge-pathnames (make-pathname :directory '(:relative "lisp")) *stump-dir*)
+      *undo-data-dir* (merge-pathnames (make-pathname :directory '(:relative "undo")) *data-dir*)
+      *debug-file*    (merge-pathnames (make-pathname :name "debug") *data-dir*)
+      *scratchpad-group-name* ".scratch" )
+
 
 (defvar al/init-directory
   (directory-namestring
@@ -32,26 +43,36 @@
  (pathname-as-directory (concat (getenv "HOME")
                                 "/src/stumpwm-contrib")))
 
+
 ;; For Creating a Swank Server to Interact with Stump
-(load "/home/arch/.emacs.d/elpa/slime-20161102.711/swank-loader.lisp")
+;; (directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
+;; (pathname-as-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
+;; (pathname-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
+
+;; (pathname-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
+;; (load (make-pathname 
+ ;; (directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp"))
+ ;; (load (format nil "/home/arch/.emacs.d/elpa/slime-~a/swank-loader.lisp" :20161109.640))
+(load "/home/arch/quicklisp/setup.lisp")
+(load "/home/arch/.emacs.d/elpa/slime-20161109.640/swank-loader.lisp")
+
 (swank-loader:init)
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; example usage: (al/load "lisp/example-directory/example-filename")
 
-;; Loading quicklisp
-;; (defvar quicklisp-path "~/quicklisp")
-;; (load (concat quicklisp-path "/slime-helper"))
+(dolist (m '(
+             "lisp/load"
+             "lisp/startup"
+             "lisp/remember"
+             "lisp/commands"
+             "lisp/keymap"
+             "lisp/vim"
+             "lisp/toggle"
+             "lisp/map"
+             ;; "lisp/macro"
+             "lisp/appearance"
+             "lisp/modules"))
+  (progn
+    (al/load m)))
 
-;; (ql:quickload :swank)
-;; (ql:update-all-dists)
-;; (ql:update-client)
-
-
-;; (al/load "lisp/*")
-(al/load "lisp/startup")
-(al/load "lisp/keymap")
-(al/load "lisp/vim")
-(al/load "lisp/toggle")
-(al/load "lisp/map")
-(al/load "lisp/macro")
-(al/load "lisp/appearance")
-
-;;; init.lisp ends here
+;;; END init.lisp

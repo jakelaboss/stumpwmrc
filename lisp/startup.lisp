@@ -1,6 +1,6 @@
-;;-------~---~----------~----------~----
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; *-Startup Scripts-* ;;
-;;-------~---~----------~----------~----
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Shell Commands ::
 
@@ -11,18 +11,25 @@
 
 (head-config)
 
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Keybindings ::
 
 ;; Sets Caps-lock to ESC key
+;; Set Brackets to Parans
 (run-shell-command "xmodmap -e 'clear Lock'")
 (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
-(run-shell-command "xmodmap ~/.Xmodmap")
+(stumpwm:run-shell-command "xmodmap ~/.Xmodmap")
 
-;; Set 9 and 0 to [ and ]  for lisp editing
-;;(defvar *set-easy-paran*
-;;  (do (
-;;      (run-shell-command "xmodmap -e 'clear ['")
-;;      (run-shell-command "xmodmap -e 'clear ]'")
-;;      (run-shell-command "xmodmap -e 'keycode 0x42=Escape'"))))
+;; (stumpwm:run-shell-command "! keycode 66 = Caps_Lock NoSymbol Caps_Lock")
 
-;;(defvar quicklisp-path "~/quicklisp")
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; VPN ;;
+
+(defun vpn (conf)
+  (stumpwm:run-shell-command (concatenate 'string "sudo openvpn /etc/openvpn/" (concatenate 'string conf ".conf"))))
+
+(vpn "Brazil")
+
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;

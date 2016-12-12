@@ -16,10 +16,8 @@
 
 ;; (ql:quickload :swank)
 
-(load "/home/arch/.emacs.d/elpa/slime-20161102.711/swank-loader.lisp")
-;; (require :swank)
+(load "/home/arch/.emacs.d/elpa/slime-20161109.640/swank-loader.lisp")
 (swank-loader:init)
-;; (ql:quickload :swank)
 
 ;; For the not so lazy
 (defcommand swank () ()
@@ -29,11 +27,6 @@
   (echo-string (current-screen) 
                "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
 ;; (swank)
-
-
-;; (swank:create-server :port 4005
-;;                      :style swank:*communication-style*
-;;                      :dont-close t)
 
 ;; sudo pptpsetup --create municity --server 24.39.106.238 --username scavpn02 --password 71Hook45Red --encrypt 
 ;; sudo pptpsetup --delete municity 
