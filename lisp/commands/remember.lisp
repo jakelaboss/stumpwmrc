@@ -75,7 +75,7 @@ differs from RESTART, which restarts the unix process.
 
 ;; Since the process isn't restarted, existing customizations remain
 ;; after the restart."
-  (throw :toplevel :restart))
+  (throw :top-level :restart))
 
 
 

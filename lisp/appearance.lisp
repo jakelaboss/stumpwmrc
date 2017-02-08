@@ -8,24 +8,26 @@
 (defvar *mountains* (concatenate 'string *wallpapers-4k* "/mountains"))
 (defvar *galaxy* (concatenate 'string *wallpapers-4k* "/galaxy"))
 (defvar *abstract* (concatenate 'string *wallpapers-4k* "/abstract"))
-;; (setf mountains "/home/arch/Downloads/wallpapers/4k/4k/mountains")
+(defvar *green* (concatenate 'string *wallpapers-4k* "/green"))
+
 ;; (defvar current-set)
 ;; Purple
 ;; (defun set-wallpaper-set (var-name &optional)
 ;;   (setf current-set var-name))
 
-;; (stumpwm:run-shell-command (concatenate 'string "feh --bg-scale " var-name "/EBSB15k.jpg " *mountains* "/Kd6MY6P.jpg  " *galaxy* "/9lcJsaP.jpg  " *mountains* "/oH1wlYb.jpg"))
 
-(stumpwm:run-shell-command (concatenate 'string "feh --bg-scale " *mountains* "/EBSB15k.jpg " *mountains* "/Kd6MY6P.jpg  " *galaxy* "/9lcJsaP.jpg  " *mountains* "/oH1wlYb.jpg"))
+(setf current-set '(stumpwm:run-shell-command (concatenate 'string "feh --bg-scale "
+                                               *green* "/RePIDAe.jpg "  ;left
+                                               *green* "/k8nyfek.jpg " ;right
+                                               *green* "/BM2vtfz.jpg " ;top
+                                               *green* "/7162209cbe40aeeba705870210e5eb7d.jpg " ;center
+                                               )))
+(eval current-set)
 
-                 ;; (run-shell-command (concatenate 'string "feh --bg-scale /home/arch/Downloads/wallpapers/4k/4k/mountains/EBSB15k.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/Kd6MY6P.jpg  /home/arch/Downloads/wallpapers/4k/4k/galaxy/9lcJsaP.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/oH1wlYb.jpg")
-;; Black and White
-;; (run-shell-command "feh --bg-scale /home/arch/Downloads/wallpapers/4k/4k/mountains/EBSB15k.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/Kd6MY6P.jpg  /home/arch/Downloads/wallpapers/4k/4k/galaxy/9lcJsaP.jpg  /home/arch/Downloads/wallpapers/4k/4k/mountains/oH1wlYb.jpg")
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Font ::
 (set-font "xft:DejaVu Sans")
-
 
 ;; Message and Input Bar ::
 (setf *timeout-wait* 3)
@@ -48,3 +50,16 @@
                                       '(:eval (stumpwm:run-shell-command "date" t))))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+(defcommand gaps () ()
+  "Toggle the padding of tiled windows"
+  (setf *useless-gaps-on* (null *useless-gaps-on*))
+
+  ;; Following is pseudo code to use hooks
+  ;; to do something like change border colors or size
+  ;; (if *useless-gaps-on*
+  ;;     (run-hook 'frame-gap-on)
+  ;;     (run-hook 'frame-gap-off))
+  (reset-all-windows))
+
+

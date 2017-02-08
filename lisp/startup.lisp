@@ -2,12 +2,35 @@
 ;; *-Startup Scripts-* ;;
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
-;; Shell Commands ::
-
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Head Configuration
-(defvar *main-head*"xrandr --output HDMI-0 --mode 1920x1080  --pos 0x1620 --rate 60.00 --output  DP-1 --mode 3840x2160 --pos 1920x1080 --output DVI-I-1 --mode 1920x1080 --rate 144.00  --pos 5760x1620  --output DVI-D-0 --mode 1920x1080 --pos 2880x0")
+
+;; 4k config
+(defvar screen-center "--mode 3840x2160 --pos 1920x1080 ")
+(defvar screen-left "--mode 1920x1080  --pos 0x1620 --rate 60.00 ")
+(defvar screen-right "--mode 1920x1080 --rate 144.00  --pos 5760x1620 ")
+(defvar screen-up "--mode 1920x1080 --pos 2880x0 ")
+
+;; ;; 2k config
+;; (defvar screen-center "--mode 2560x1440 --pos 1920x1080 ")
+;; (defvar screen-left "--mode 1920x1080  --pos 0x1260 --rate 60.00 ") ;; (defvar screen-right "--mode 1920x1080 --rate 144.00  --pos 4480x1260 ") ;; (defvar screen-up "--mode 1920x1080 --pos 2560x0 ")
+
+(defvar DP "--output DP-1 ")
+(defvar HDMI "--output HDMI-0 ")
+(defvar DVI-0 "--output DVI-D-0 ")
+(defvar DVI-1 "--output DVI-I-1 ")
+
+
+(defvar *main-head*
+  (format nil "xrandr ~a ~a ~a ~a ~a ~a";~a ~a" 
+          DP screen-center
+          HDMI screen-left
+          DVI-1 screen-right
+          ;; DVI-0 screen-up
+          ))
+
 (defun head-config ()
-  (run-shell-command *main-head*))
+  (stumpwm:run-shell-command *main-head*))
 
 (head-config)
 
@@ -21,15 +44,14 @@
 (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
 (stumpwm:run-shell-command "xmodmap ~/.Xmodmap")
 
-;; (stumpwm:run-shell-command "! keycode 66 = Caps_Lock NoSymbol Caps_Lock")
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; VPN ;;
 
-(defun vpn (conf)
-  (stumpwm:run-shell-command (concatenate 'string "sudo openvpn /etc/openvpn/" (concatenate 'string conf ".conf"))))
+;; (defun vpn (conf)
+;;   (concatenate 'string "sudo openvpn /etc/openvpn/" (concatenate 'string conf ".conf")))
 
-(vpn "Brazil")
+;; (vpn "Brazil")
 
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;

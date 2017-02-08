@@ -22,7 +22,6 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-v") "hsplit")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-s") "vsplit")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-r") "remove")
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-q") "kill")
 (stumpwm:define-key *root-map* (stumpwm:kbd "q") "kill")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s--")"fclear")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-n") "pull-hidden-next")

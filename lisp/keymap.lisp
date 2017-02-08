@@ -2,6 +2,20 @@
 ;; Keymap ;;
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
+(in-package :stumpwm)
+;; Main;;
+
+;; (defvar *main-map*
+;;   (let ((m (stumpwm:make-sparse-keymap)))
+;;     (stumpwm:define-key m (stumpwm:kbd "a") '*application-bindings*)
+;;     (stumpwm:define-key m (stumpwm:kbd "g") '*group-bindings*)
+;;     (stumpwm:define-key m (stumpwm:kbd "m") '*common-lisp-mode*)
+;;     (stumpwm:define-key m (stumpwm:kbd "e") '*emacs-binding*)
+;;     m
+;;     ))
+;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:set-prefix-key "j") *main-map*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Applications ;;
 (defvar *application-bindings*
    (let ((m (stumpwm:make-sparse-keymap)))
@@ -42,6 +56,7 @@
     (stumpwm:define-key m (stumpwm:kbd "R") "title")
     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
     (stumpwm:define-key m (stumpwm:kbd "m") "mode-line")
+    (stumpwm:define-key m (stumpwm:kbd "l") "rofi-run")
     m ; NOTE: this is important
     ))
 
@@ -64,9 +79,9 @@
     m
     ))
 
-;; (stumpwm:undefine-key stumpwm:*top-map*)
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-m") '*common-lisp-mode*)
 (stumpwm:define-key *common-lisp-mode* (stumpwm:kbd "e") '*common-lisp-mode-repl*)
+(stumpwm:undefine-key *top-map* (stumpwm:kbd "s"))
+(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-m") '*common-lisp-mode*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Emacs Commands ;;
@@ -78,14 +93,48 @@
 
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-e") '*emacs-bindings*)
 
-;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; ------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Mode Line Commands
 ;; (defvar *mode-line-bindings*
 ;;   (let ((m (stumpwm:make-sparse-keymap)))
-;;     (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
-;;     (stumpwm:define-key m (stumpwm:kbd "f") "windowlist")
 ;;     (stumpwm:define-key m (stumpwm:kbd "R") "title")
 ;;     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
 ;;     m ; NOTE: this is important
 ;;     ))
 ;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-") '*mode-line-bindings*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Database Commands ;;
+
+(defvar *database-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "p") '*postgres-bindings*)
+    m
+    ))
+
+(defvar *postgres-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "s") "pg-start")
+    (stumpwm:define-key m (stumpwm:kbd "q") "pg-stop")
+    m
+    ))
+
+(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Quit Bindings ;;
+
+(defvar *quit-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "q") "kill")
+    m
+    ))
+
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-q") '*quit-bindings*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Rofi
+(stumpwm:defcommand rofi-run ()
+  (inferior-shell:run "rofi -run" t))
+
+

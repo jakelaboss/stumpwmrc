@@ -1,6 +1,7 @@
 ;;-------~---~----------~----------~----
 ;; Mappings ;;
 ;;-------~---~----------~----------~----
+(in-package :stumpwm)
 
 ;; Prefix Key ;;
 (set-prefix-key (kbd "C-z"))
@@ -42,3 +43,18 @@
 (define-key *root-map* (kbd "C-f") "stackoverflow")
 (define-key *root-map* (kbd "C-s") "google")
 (define-key *root-map* (kbd "i") "imdb")
+
+
+(setf *mouse-focus-policy* :sloppy) ;; :click, :ignore, :sloppy
+;; Sudo Commands ;;
+
+
+;; Postgres Commands ;;
+;; (define-sudo-command pg-start "pg_ctl start -D /var/lib/postgres/data")
+;; (define-sudo-command  pg-start "su postgres -c 'pg_ctl start -D /usr/local/pgsql/data -l serverlog'"
+
+
+;; (defun vpn (conf)
+;;   (define-sudo-command vpn (concatenate 'string "openvpn /etc/openvpn/" (concatenate 'string conf ".conf"))))
+
+;; (vpn "Brazil")

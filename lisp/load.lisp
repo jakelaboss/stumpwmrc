@@ -6,7 +6,13 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 (dolist (m '(
-             "inferior-shell"))
+             "inferior-shell"
+             "usocket"
+             "sxql"
+             "alexandria"
+             "ironclad"
+             "mito"
+             "hunchentoot"))
   (progn
     (ql:quickload m)))
 

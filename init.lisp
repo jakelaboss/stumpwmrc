@@ -1,13 +1,13 @@
 ;;; init.lisp --- Vital settings and loading other files
 
-;; Copyright © 2013-2016 Alex Kost <alezost@gmail.com>
+;; Copyright © 2013-2016 Jake LaBossier <jakelaboss@gmail.com>
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; This file should be symlinked by "~/.stumpwmrc".
+;; This file should be symlinked to "~/.stumpwmrc".
 ;; I compile stumpwm with swank, so i don't need to load it.
 
 ;;; Code:
@@ -15,9 +15,10 @@
 
 (in-package :stumpwm)
 
-(stumpwm:run-shell-command "xmodmap -e 'clear ['")
+;; (stumpwm:run-shell-command "xmodmap -e 'clear ['")
 (setf *home-dir*      (user-homedir-pathname)
-      *stump-dir*     (merge-pathnames (make-pathname :directory '(:relative ".stumpwm.d")) *home-dir*)
+      *lisp-dir*     (merge-pathnames (make-pathname :directory '(:relative "common-lisp")) *home-dir*)
+      *stump-dir*     (merge-pathnames (make-pathname :directory '(:relative "libraries/linux/stumpwm")) *lisp-dir*)
       *data-dir*      (merge-pathnames (make-pathname :directory '(:relative "storage")) *stump-dir*)
       *load-dir*      (merge-pathnames (make-pathname :directory '(:relative "lisp")) *stump-dir*)
       *undo-data-dir* (merge-pathnames (make-pathname :directory '(:relative "undo")) *data-dir*)
@@ -44,13 +45,6 @@
                                 "/src/stumpwm-contrib")))
 
 
-;; For Creating a Swank Server to Interact with Stump
-;; (directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
-;; (pathname-as-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
-;; (pathname-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
-
-;; (pathname-directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp")
-;; (load (make-pathname 
  ;; (directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp"))
  ;; (load (format nil "/home/arch/.emacs.d/elpa/slime-~a/swank-loader.lisp" :20161109.640))
 (load "/home/arch/quicklisp/setup.lisp")
@@ -59,12 +53,12 @@
 (swank-loader:init)
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; example usage: (al/load "lisp/example-directory/example-filename")
-
 (dolist (m '(
              "lisp/load"
+             "lisp/var/global"
              "lisp/startup"
-             "lisp/remember"
-             "lisp/commands"
+             "lisp/commands/commands"
+             ;; "lisp/commands/remember"
              "lisp/keymap"
              "lisp/vim"
              "lisp/toggle"
@@ -76,3 +70,6 @@
     (al/load m)))
 
 ;;; END init.lisp
+
+;; aria2 --conf-path=/home/arch/library/media/aria2.rapidshare http://rapidshare.com/
+
