@@ -5,32 +5,32 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Head Configuration
 
+;; This is run so that extrearnal monitors can be recognized
+(stumpwm:run-shell-command "xrandr --setprovideroutputsource 1 0")
 ;; 4k config
 (defvar screen-center "--mode 3840x2160 --pos 1920x1080 ")
-(defvar screen-left "--mode 1920x1080  --pos 0x1620 --rate 60.00 ")
-(defvar screen-right "--mode 1920x1080 --rate 144.00  --pos 5760x1620 ")
-(defvar screen-up "--mode 1920x1080 --pos 2880x0 ")
+(defvar screen-left "--mode 1920x1080  --pos 0x1620 --rate 60.01 ")
+;; (defvar screen-right "--mode 1920x1080 --rate 144.00  --pos 5760x1620 ")
+;; (defvar screen-up "--mode 1920x1080 --pos 2880x0 ")
 
-;; ;; 2k config
-;; (defvar screen-center "--mode 2560x1440 --pos 1920x1080 ")
-;; (defvar screen-left "--mode 1920x1080  --pos 0x1260 --rate 60.00 ") ;; (defvar screen-right "--mode 1920x1080 --rate 144.00  --pos 4480x1260 ") ;; (defvar screen-up "--mode 1920x1080 --pos 2560x0 ")
-
-(defvar DP "--output DP-1 ")
-(defvar HDMI "--output HDMI-0 ")
-(defvar DVI-0 "--output DVI-D-0 ")
-(defvar DVI-1 "--output DVI-I-1 ")
-
+(defvar eDP "--output eDP1 ")
+(defvar DP-1 "--output DP-1 ")
+(defvar DVI "--output DVI-I-1-1")
+(defvar DP-2 "--output DP-2 ")
+(defvar HDMI "--output HDMI-1 ")
 
 (defvar *main-head*
-  (format nil "xrandr ~a ~a ~a ~a ~a ~a";~a ~a" 
-          DP screen-center
-          HDMI screen-left
-          DVI-1 screen-right
+  (format nil "xrandr ~a ~a ~a ~a" ; ~a ~a";~a ~a"
+          eDP screen-center
+          DVI screen-left
+          ;; DP-2 screen-right
           ;; DVI-0 screen-up
           ))
 
 (defun head-config ()
   (stumpwm:run-shell-command *main-head*))
+
+(print *main-head*)
 
 (head-config)
 
@@ -40,9 +40,9 @@
 
 ;; Sets Caps-lock to ESC key
 ;; Set Brackets to Parans
-(run-shell-command "xmodmap -e 'clear Lock'")
-(run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
-(stumpwm:run-shell-command "xmodmap ~/.Xmodmap")
+;; (run-shell-command "xmodmap -e 'clear Lock'")
+;; (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
+;; (stumpwm:run-shell-command "xmodmap ~/.Xmodmap")
 
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
