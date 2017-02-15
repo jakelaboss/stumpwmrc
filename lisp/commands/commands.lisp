@@ -12,7 +12,7 @@
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Swank Server
-(load "/home/arch/.emacs.d/elpa/slime-20161109.640/swank-loader.lisp")
+(load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
 (swank-loader:init)
 
 ;; For the not so lazy
@@ -21,7 +21,7 @@
                        :dont-close t)
   (echo-string (current-screen)
                "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
-;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Rewrite some commands
 
@@ -89,7 +89,7 @@
 
 ;; (define-su-command pg- "postgres" (concat "pg_ct status -D " *pg-data*))
 
-;; (define-sudo-command mount-media "mount -t ntfs-3g /dev/sda2 /home/arch/library/media/mnt/")
+;; (define-sudo-command mount-media "mount -t ntfs-3g /dev/sda2 /home/vagabond/library/media/mnt/")
 
 ;; VPN ;;
 
@@ -201,3 +201,8 @@ window along."
 window along."
   (group-forward-with-window (current-group)
                              (reverse (sort-groups (current-screen)))))
+
+(defcommand set-backlight (number)
+  '(eval (stumpwm:run-shell-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" number))))
+
+

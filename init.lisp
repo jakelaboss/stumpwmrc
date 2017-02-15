@@ -1,5 +1,7 @@
 ;;; init.lisp --- Vital settings and loading other files
 
+
+
 ;; Copyright © 2013-2016 Jake LaBossier <jakelaboss@gmail.com>
 
 ;; You should have received a copy of the GNU General Public License
@@ -7,12 +9,11 @@
 
 ;;; Commentary:
 
-;; This file should be symlinked to "~/.stumpwmrc".
-;; I compile stumpwm with swank, so i don't need to load it.
+;; ;; This file should be symlinked to "~/.stumpwmrc".
+;; ;; I compile stumpwm with swank, so i don't need to load it.
 
-;;; Code:
-;;------------------------------------------------------------------------------------------------------------------------ ;;
-
+;; ;;; Code:
+;; ;;------------------------------------------------------------------------------------------------------------------------ ;;
 (in-package :stumpwm)
 
 ;; (stumpwm:run-shell-command "xmodmap -e 'clear ['")
@@ -26,50 +27,27 @@
       *scratchpad-group-name* ".scratch" )
 
 
-(defvar al/init-directory
-  (directory-namestring
-   (truename (merge-pathnames (user-homedir-pathname)
-                              ".stumpwmrc")))
-  "A directory with initially loaded files.")
-
-(defun al/load (filename)
-  "Load a file FILENAME (without extension) from `al/init-directory'."
-  (let ((file (merge-pathnames (concat filename ".lisp")
-                               al/init-directory)))
-    (if (probe-file file)
-        (load file)
-        (format *error-output* "File '~a' doesn't exist." file))))
-
-(set-module-dir
- (pathname-as-directory (concat (getenv "HOME")
-                                "/src/stumpwm-contrib")))
+;; (set-module-dir
+;;  (pathname-as-directory (concat (getenv "HOME")
+;;                                 "/src/stumpwm-cont rib")))
 
 
- ;; (directory "/home/arch/.emacs.d/elpa/*/swank-loader.lisp"))
- ;; (load (format nil "/home/arch/.emacs.d/elpa/slime-~a/swank-loader.lisp" :20161109.640))
-(load "/home/arch/quicklisp/setup.lisp")
-(load "/home/arch/.emacs.d/elpa/slime-20161109.640/swank-loader.lisp")
+(load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
 
 (swank-loader:init)
-;;------------------------------------------------------------------------------------------------------------------------ ;;
-;; example usage: (al/load "lisp/example-directory/example-filename")
-(dolist (m '(
-             "lisp/load"
-             "lisp/var/global"
-             "lisp/startup"
-             "lisp/commands/commands"
-             ;; "lisp/commands/remember"
-             "lisp/keymap"
-             "lisp/vim"
-             "lisp/toggle"
-             "lisp/map"
-             ;; "lisp/macro"
-             "lisp/appearance"
-             "lisp/modules"))
-  (progn
-    (al/load m)))
 
+;; (setf *stump-true-path* "/home/vagabond/common-lisp/libraries/linux/stumpwm")
 ;;; END init.lisp
 
-;; aria2 --conf-path=/home/arch/library/media/aria2.rapidshare http://rapidshare.com/
 
+(mapcar #'load '(
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/load.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/var/global.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/startup.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/vim.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/appearance.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/commands/commands.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/commands/tile-group.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/keymap.lisp"
+                 "/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/map.lisp"
+                  ))

@@ -25,7 +25,7 @@
      (stumpwm:define-key m (stumpwm:kbd "s") "exec slack")
      (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
      (stumpwm:define-key m (stumpwm:kbd "XF86AudioPlay") "exec spotify")
-     (stumpwm:define-key m (stumpwm:kbd "g") "exec google-chrome-stable")
+     (stumpwm:define-key m (stumpwm:kbd "g") "exec qutebrowser")
      m ; NOTE: this is important
      ))
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-a") '*application-bindings*)
@@ -138,3 +138,82 @@
   (inferior-shell:run "rofi -run" t))
 
 
+;; Setup Remote Swank Connection
+
+(defvar *remote-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "s-c") "")
+    (stumpwm:define-key m (stumpwm:kbd "j") "move-focus down")
+    (stumpwm:define-key m (stumpwm:kbd "h") "move-focus left")
+    (stumpwm:define-key m (stumpwm:kbd "k") "move-focus up")
+    (stumpwm:define-key m (stumpwm:kbd "l") "move-focus right")
+    (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
+    (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
+    (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
+    (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+    ;; move window
+    (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
+    (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
+    (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
+    (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+    ;; Splits WIndows and Frames
+    (stumpwm:define-key m (stumpwm:kbd "v") "hsplit")
+    (stumpwm:define-key m (stumpwm:kbd "s") "vsplit")
+    (stumpwm:define-key m (stumpwm:kbd "r") "remove")
+    (stumpwm:define-key m (stumpwm:kbd "q") "kill")
+    (stumpwm:define-key m (stumpwm:kbd "-")"fclear")
+    (stumpwm:define-key m (stumpwm:kbd "n") "pull-hidden-next")
+    (stumpwm:define-key m (stumpwm:kbd "p") "pull-hidden-previous")
+    m
+    ))
+
+
+;; this is a keymap that sends all kestrokes to a a port
+;; Can either be the port 4005 for local stumpwm, 4006 for remote stumpwm
+;; or 5900 for vnc server
+
+
+
+(swank/gray:stream-listen
+
+
+(swank-api:with-connection (swank-api:*emacs-connection*) (swank:)
+
+(swank-api:send-to-remote-channel 4006 "print 'hello 'world")
+(stumpwm:define-key *top-map* (stumpwmw) (window-send-string (format nil)"~a"))
+
+(swank-repl:listener-eval :port 4006 :style swank:*communication-style*
+                     :dont-close t)
+
+(let* ((server (usocket:socket-connect "127.0.0.1" 4006))
+       (object (stream ))
+  (usocket:socket-stream )}))
+
+;; process to create a ssh link between local 4006 port and port on remote 4005 port
+
+
+;; This will create a vnc-server on a remote server
+(defmacro define-ssh-command (name ssh-arguments command)
+  "Creates a ssh command to be run on"
+  (let* ((nm name)
+         (cmd command)
+         (ssh ssh-arguments))
+  `(stumpwm:defcommand ,nm () ()
+    (let* ((password "let'sgoexploring")
+           (remote "192.168.0.100"))
+      (if (null ,port)
+      (stumpwm:run-shell-command (concat "sshpass -p \"" password
+                                         "\" ssh -o StrictHostKeyChecking=no "
+                                         ,ssh remote " '" ,cmd "'"))))
+
+     "-t -L 5900:localhost:5900 "
+;; ssh -L4006:127.0.0.1:4005 192.168.0.100
+
+
+(stumpwm:defcommand vnc-server () ()
+  (let* ((password "let'sgoexploring")
+         (remote "192.168.0.100"))
+    (stumpwm:run-shell-command (concat "sshpass -p \"" password
+                                       "\" ssh -o StrictHostKeyChecking=no -t -L 5900:localhost:5900 "
+                                       remote
+                                       " 'x11vnc -display :0 -auth /home/arch/.Xauthority'"))))

@@ -18,12 +18,11 @@
 ;; Document Reader
 (define-key *root-map* (kbd "z") "exec zatura /~/documents/books/lisp/")
 ;; Browse somewhere
-(define-key *root-map* (kbd "b") "colon1 exec google-chrome-stable http://www.")
+(define-key *root-map* (kbd "b") "colon1 exec qutebrowser http://www.")
 ;; Ssh somewhere
 (define-key *root-map* (kbd "s-s") "colon1 exec xterm -e ssh ")
 ;; Lock screen
 (define-key *root-map* (kbd "C-l") "exec xlock")
-
 
 ;; Pulse Audio Config ;;
 (define-key *top-map* (kbd "XF86AudioRaiseVolume") "exec /usr/bin/pulseaudio-ctl up")
@@ -32,13 +31,13 @@
 
 ;; Web jump Macro
 (defmacro make-web-jump (name prefix)
-  `(defcommand ,(intern name) (search) ((:rest ,(concatenate 'string name " search: ")))
-    (substitute #\+ #\Space search)
-    (run-shell-command (concatenate 'string ,prefix search))))
+  `(defcommand ,(intern name) (sevagabond) ((:rest ,(concatenate 'string name " sevagabond: ")))
+    (substitute #\+ #\Space sevagabond)
+    (run-shell-command (concatenate 'string ,prefix sevagabond))))
 
-(make-web-jump "google" "google-chrome-stable http://www.google.fr/search?q=")
-(make-web-jump "imdb" "google-chrome-stable http://www.imdb.com/find?q=")
-(make-web-jump "stackoverflow" "google-chrome-stable https://www.stackoverflow.com/find?q=")
+(make-web-jump "google" "qutebrowser http://www.google.fr/sevagabond?q=")
+(make-web-jump "imdb" "qutebrowser http://www.imdb.com/find?q=")
+(make-web-jump "stackoverflow" "qutebrowser https://www.stackoverflow.com/find?q=")
 
 (define-key *root-map* (kbd "C-f") "stackoverflow")
 (define-key *root-map* (kbd "C-s") "google")

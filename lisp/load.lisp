@@ -12,23 +12,26 @@
              "alexandria"
              "ironclad"
              "mito"
+             "trivial-ssh"
+             "cl-fad"
+             "cl-ppcre"
              "hunchentoot"))
   (progn
     (ql:quickload m)))
 
 
-(defvar al/cl-directory
-  (directory-namestring
-   (truename (merge-pathnames (user-homedir-pathname)
-                              "common-lisp")))
-  "A directory with initially loaded files.")
+;; (defvar al/cl-directory
+;;   (directory-namestring
+;;    (truename (merge-pathnames (user-homedir-pathname)
+;;                               "common-lisp")))
+;;   "A directory with initially loaded files.")
 
-(defun al/cl-load (filename)
-  "Load a file FILENAME (without extension) from `cl/init-directory'."
-  (let ((file (merge-pathnames (stumpwm:concat filename ".lisp")
-                               al/cl-directory)))
-    (if (probe-file file)
-        (load file)
-      (format *error-output* "File '~a' doesn't exist." file))))
+;; (defun al/cl-load (filename)
+;;   "Load a file FILENAME (without extension) from `cl/init-directory'."
+;;   (let ((file (merge-pathnames (stumpwm:concat filename ".lisp")
+;;                                al/cl-directory)))
+;;     (if (probe-file file)
+;;         (load file)
+;;       (format *error-output* "File '~a' doesn't exist." file))))
 
 ;; (al/cl-load "libraries/core/functions")
