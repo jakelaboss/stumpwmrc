@@ -8,19 +8,29 @@
 
 (setf work-network (manual-network-test "RecursiveIdiots-5" "let'sgoexploring"))
 
+(setf work-network (manual-network-test "RecursiveIdiotHome" "let'sgoexploring"))
+
 (setf phone-network (manual-network-test "Vagabond" "let'sgoexploring"))
 
-(print work-network)
 
-(inferior-shell:run current-network)
-wpa_supplicant -B -i wlp3s0 -c <(wpa_passphrase "RecursiveIdiots-5" "let'sgoexploring")
+
+(setf Sid-network (manual-network-test "intranet"))
+
+("sudo mount -t cifs //192.168.0.17/Users/jakelaboss /mnt/windows/ -o user=jakelaboss")
+
+;; (print work-network)
+
+;; (inferior-shell:run current-network)
+;; wpa_supplicant -B -i wlp3s0 -c <(wpa_passphrase "RecursiveIdiots-5" "let'sgoexploring")
 
 ;; process to create a ssh link between local 4006 port and port on remote 4005 port
-;; ssh -L4006:127.0.0.1:4005 192.168.0.100
+("ssh -L4006:127.0.0.1:4005 192.168.0.100")
 
 ;; create ssh link between x11vnc on remote and on localhost:0
-;; ssh -t -L 5900:localhost:5900 192.168.0.100 'sudo x11vnc -display :0 -auth /home/arch/.Xauthority'
+("ssh -t -L 5900:localhost:5900 192.168.0.103 'sudo x11vnc -display :0 -auth /home/arch/.Xauthority'")
 
 ;; to connect to localhost:0
-;; vncviewer localhost:0
+"vncviewer localhost:0"
 
+;; to connect to desktop
+"sshfs arch@192.168.0.103:/ /home/vagabond/mnt/linux/ -p 22"

@@ -40,3 +40,7 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-:") "eval")
 
 ;; (uiop:run-program "sudo mount -t ntfs-3g /dev/sd?n /where/to/mnt)
+
+;; (in-package :stumpwm)
+;; (stumpwm:undefine-key *top-map* (stumpwm:kbd "s-d"))
+

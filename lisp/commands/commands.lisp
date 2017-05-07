@@ -12,8 +12,8 @@
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Swank Server
-(load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
-(swank-loader:init)
+;; (load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
+;; (swank-loader:init)
 
 ;; For the not so lazy
 (defcommand swank () ()
@@ -21,7 +21,10 @@
                        :dont-close t)
   (echo-string (current-screen)
                "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
-;; ;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+;; (defcommand
+;;     [swank:create-server :port 4006 :style swank:*communication-style*)
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Rewrite some commands
 
@@ -205,4 +208,14 @@ window along."
 (defcommand set-backlight (number)
   '(eval (stumpwm:run-shell-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" number))))
 
+
+(defcommand gaps () ()
+   "Toggle the padding of tiled windows"
+   (setf *useless-gaps-on* (null *useless-gaps-on*))
+   ;; Following is pseudo code to use hooks
+   ;; to do something like change border colors or size
+   ;; (if *useless-gaps-on*
+   ;;     (run-hook 'frame-gap-on)
+   ;;     (run-hook 'frame-gap-off))
+   (reset-all-windows))
 

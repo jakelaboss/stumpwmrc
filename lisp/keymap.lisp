@@ -25,7 +25,7 @@
      (stumpwm:define-key m (stumpwm:kbd "s") "exec slack")
      (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
      (stumpwm:define-key m (stumpwm:kbd "XF86AudioPlay") "exec spotify")
-     (stumpwm:define-key m (stumpwm:kbd "g") "exec qutebrowser")
+     (stumpwm:define-key m (stumpwm:kbd "g") "exec google-chrome-beta")
      m ; NOTE: this is important
      ))
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-a") '*application-bindings*)
@@ -52,11 +52,12 @@
 (defvar *frame-bindings*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
-    (stumpwm:define-key m (stumpwm:kbd "f") "windowlist")
+    (stumpwm:define-key m (stumpwm:kbd "w") "windowlist")
     (stumpwm:define-key m (stumpwm:kbd "R") "title")
     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
     (stumpwm:define-key m (stumpwm:kbd "m") "mode-line")
-    (stumpwm:define-key m (stumpwm:kbd "l") "rofi-run")
+    (stumpwm:define-key m (stumpwm:kbd "g") "gaps")
+    (stumpwm:define-key m (stumpwm:kbd "f") "fullscreen")
     m ; NOTE: this is important
     ))
 
@@ -119,7 +120,8 @@
     m
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
+;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
+;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Quit Bindings ;;
@@ -133,39 +135,52 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-q") '*quit-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+;; Golden Ratio Bindings
+
+(defvar *toggle-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "g") "toggle-golden-ratio-command")
+    m
+    ))
+
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-t") '*toggle-bindings*)
+
+
+
 ;; Rofi
-(stumpwm:defcommand rofi-run ()
-  (inferior-shell:run "rofi -run" t))
+;; (stumpwm:defcommand rofi-run ()
+;;   (inferior-shell:run "rofi -run" t))
 
 
 ;; Setup Remote Swank Connection
 
-(defvar *remote-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "s-c") "")
-    (stumpwm:define-key m (stumpwm:kbd "j") "move-focus down")
-    (stumpwm:define-key m (stumpwm:kbd "h") "move-focus left")
-    (stumpwm:define-key m (stumpwm:kbd "k") "move-focus up")
-    (stumpwm:define-key m (stumpwm:kbd "l") "move-focus right")
-    (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
-    (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
-    (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
-    (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
-    ;; move window
-    (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
-    (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
-    (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
-    (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
-    ;; Splits WIndows and Frames
-    (stumpwm:define-key m (stumpwm:kbd "v") "hsplit")
-    (stumpwm:define-key m (stumpwm:kbd "s") "vsplit")
-    (stumpwm:define-key m (stumpwm:kbd "r") "remove")
-    (stumpwm:define-key m (stumpwm:kbd "q") "kill")
-    (stumpwm:define-key m (stumpwm:kbd "-")"fclear")
-    (stumpwm:define-key m (stumpwm:kbd "n") "pull-hidden-next")
-    (stumpwm:define-key m (stumpwm:kbd "p") "pull-hidden-previous")
-    m
-    ))
+;; (defvar *remote-bindings*
+;;   (let ((m (stumpwm:make-sparse-keymap)))
+;;     (stumpwm:define-key m (stumpwm:kbd "s-c") "")
+;;     (stumpwm:define-key m (stumpwm:kbd "j") "move-focus down")
+;;     (stumpwm:define-key m (stumpwm:kbd "h") "move-focus left")
+;;     (stumpwm:define-key m (stumpwm:kbd "k") "move-focus up")
+;;     (stumpwm:define-key m (stumpwm:kbd "l") "move-focus right")
+;;     (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
+;;     (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
+;;     (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
+;;     (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+;;     ;; move window
+;;     (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
+;;     (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
+;;     (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
+;;     (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+;;     ;; Splits WIndows and Frames
+;;     (stumpwm:define-key m (stumpwm:kbd "v") "hsplit")
+;;     (stumpwm:define-key m (stumpwm:kbd "s") "vsplit")
+;;     (stumpwm:define-key m (stumpwm:kbd "r") "remove")
+;;     (stumpwm:define-key m (stumpwm:kbd "q") "kill")
+;;     (stumpwm:define-key m (stumpwm:kbd "-")"fclear")
+;;     (stumpwm:define-key m (stumpwm:kbd "n") "pull-hidden-next")
+;;     (stumpwm:define-key m (stumpwm:kbd "p") "pull-hidden-previous")
+;;     m
+;;     ))
 
 
 ;; this is a keymap that sends all kestrokes to a a port
@@ -173,47 +188,155 @@
 ;; or 5900 for vnc server
 
 
+;; (swank:create-server :port 4006 :style swank:*communication-style*
+;;                      :dont-close t))
 
-(swank/gray:stream-listen
+
+;; (defvar nas
+;;   (swank-client:slime-connect "192.168.0.100" 4006))
+
+;; (print nas)
+
+;; (swank-client:slime-eval  nas)
+
+;; (trivial-ssh:with-connection (conn "192.168.0.103"))
+;; (trivial-ssh:pass arch "let'sgoexploring")
+
+;; (swank-client:with-slime-connection (server "192.168.0.100" 4007) (+ 1 1))
+
+(defvar *emacs-port* 4006)
+(defvar *swank-client-port* 10000)
+
+(defun start-swank-server-for-emacs (port)
+  "Starts a Swank server thread, listening on PORT of the host's loopback
+interface, to handle Emacs/Slime connection requests."
+  (swank:create-server :port port :dont-close t))
+
+(defun start-swank-server-for-swank-client (port)
+  "Starts a Swank server thread, listening on PORT of the host's network
+interface, to handle Swank Client connection requests."
+  (let ((swank::*loopback-interface* (sb-unix:unix-gethostname)))
+    (swank:create-server :port port :dont-close t)))
+
+;; (defun swank-thread ()
+;;   "Returns a thread that's acting as a Swank server."
+;;   (dolist (thread (sb-thread:list-all-threads))
+;;     (when (com.google.base:prefixp "Swank" (sb-thread:thread-name thread))
+;;       (return thread))))
+
+(defun wait-for-swank-thread ()
+  "Wait for the Swank server thread to exit."
+  (let ((swank-thread (swank-thread)))
+    (when swank-thread
+      (sb-thread:join-thread swank-thread))))
+
+(defun main ()
+  (setf swank:*configure-emacs-indentation* nil
+        swank::*enable-event-history* nil
+        swank:*log-events* t)
+  (start-swank-server-for-emacs *emacs-port*)
+  (start-swank-server-for-swank-client *swank-client-port*)
+  (wait-for-swank-thread))
+
+;; (main)
+
+;; (swank-api:with-connection (swank-api:*emacs-connection*) ((swank:)
+
+;; ((swank-api:send-to-remote-channel 4006    )))
+
+;; (stumpwm:define-key *top-map* (stumpwmw) (window-send-string (format nil)"~a"))
+
+;; (defmacro if-test (test then &optional else)
+;;     `(cond (,test ,then)
+;;            (,else)))
 
 
-(swank-api:with-connection (swank-api:*emacs-connection*) (swank:)
+;; (defun if-test-defun (test then &optional else)
+;;   (cond))
 
-(swank-api:send-to-remote-channel 4006 "print 'hello 'world")
-(stumpwm:define-key *top-map* (stumpwmw) (window-send-string (format nil)"~a"))
+;; (cond (nil t)
+;;       (t))
 
-(swank-repl:listener-eval :port 4006 :style swank:*communication-style*
-                     :dont-close t)
+;; (if-test nil 'loo "FUCK YOU")
 
-(let* ((server (usocket:socket-connect "127.0.0.1" 4006))
-       (object (stream ))
-  (usocket:socket-stream )}))
+
+;; (swank-repl:listener-eval :port 4006 :style swank:*communication-style*
+;;                      :dont-close t)
+
+;; (let* ((server (usocket:socket-connect "127.0.0.1" 4006))
+;;        (object (stream ))
+;;   (usocket:socket-stream )}))
 
 ;; process to create a ssh link between local 4006 port and port on remote 4005 port
 
-
 ;; This will create a vnc-server on a remote server
-(defmacro define-ssh-command (name ssh-arguments command)
-  "Creates a ssh command to be run on"
-  (let* ((nm name)
-         (cmd command)
-         (ssh ssh-arguments))
-  `(stumpwm:defcommand ,nm () ()
-    (let* ((password "let'sgoexploring")
-           (remote "192.168.0.100"))
-      (if (null ,port)
-      (stumpwm:run-shell-command (concat "sshpass -p \"" password
-                                         "\" ssh -o StrictHostKeyChecking=no "
-                                         ,ssh remote " '" ,cmd "'"))))
 
-     "-t -L 5900:localhost:5900 "
+;; (defmacro define-ssh-command (name ssh-arguments command)
+;;   "Creates a ssh command to be run on"
+;;   (let* ((nm name)
+;;          (cmd command)
+;;          (ssh ssh-arguments)
+;;          (remote "192.168.0.100"))
+;;     `(stumpwm:defcommand ,nm () ()
+;;        (let* ((password *password*)
+;;               (if (null ,port)
+;;                   (stumpwm:run-shell-command (concat "sshpass -p \"" password
+;;                                                      "\" ssh -o StrictHostKeyChecking=no "
+;;                                                      ,ssh ,remote " '" ,cmd "'"))))
+;;          ))))
+
+;; (stumpwm:defcommand swank-connect () ()
+;;   (let* ((password "let'sgoexploring"))
+;;     (inferior-shell:run/s (format nil "sshpass -p \"~a\" ssh -L 4006:127.0.0.1:4005 192.168.0.100" password)))))
+
+;; (let* ((password "let'sgoexploring"))
+;;   (inferior-shell:run/ss (format nil "sshpass -p \"~a\" ssh -L 4006:127.0.0.1:4005 192.168.0.100" password)))
+
+;; "sshpass -p \"let'sgoexploring\" ssh -L 4006:127.0.0.1:4005 192.168.0.100"
+
+;;      "-t -L 5900:localhost:5900 "
+
 ;; ssh -L4006:127.0.0.1:4005 192.168.0.100
 
-
+;; TODO change from run-shell-command to usocket and inferior-shell
 (stumpwm:defcommand vnc-server () ()
   (let* ((password "let'sgoexploring")
-         (remote "192.168.0.100"))
+         (remote "192.168.0.103")
+         (display "1"))
     (stumpwm:run-shell-command (concat "sshpass -p \"" password
                                        "\" ssh -o StrictHostKeyChecking=no -t -L 5900:localhost:5900 "
                                        remote
-                                       " 'x11vnc -display :0 -auth /home/arch/.Xauthority'"))))
+                                       " 'x11vnc "
+                                       "x11vnc -noxdamage -many -display :"
+                                       display
+                                       "-auth /home/arch/.Xauthority'"))))
+
+
+(stumpwm:defcommand link-desktop () ()
+  (let* ((password "let'sgoexploring")
+         (remote "192.168.0.103"))
+    (stumpwm:run-shell-command (concat "sshpass -p \"" password
+                                       "\" ssh -o StrictHostKeyChecking=no -L 5900:localhost:5900 "
+                                       remote))))
+
+
+;; (defmacro create-link (name remote local-port remote-port)
+;; `(stumpwm:defcommand ,name () ()
+;;   (let* ((password "let'sgoexploring")
+;;          (remote ,remote))
+;;     (stumpwm:run-shell-command (concat "sshpass -p \"" password
+;;                                        "\" ssh -o StrictHostKeyChecking=no -L 5900:localhost:5900 "
+;;                                        remote))))
+
+
+(stumpwm:defcommand vnc-viewer () ()
+  (stumpwm:run-shell-command "vncviewer localhost:0"))
+
+;; (print (concat "sshpass -p \"" "let'sgoexploring"
+               ;; "\" ssh -o StrictHostKeyChecking=no -t -L 5900:localhost:5900 "
+;;                "192.168.0.103"
+;;                " 'x11vnc -noxdamage -many -display :0 -auth /home/arch/.Xauthority'"))
+
+
+;; ;; "modprobe acpi_call"
+;; ;; "/usr/share/acpi_call/examples/turn_off_gpu.sh"
