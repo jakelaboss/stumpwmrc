@@ -11,6 +11,7 @@ for next startup or recalling all undo actions."
 
 ;; dump [current]-group (for current-screen), [current]-screen, desktop or window-placement-rules
 ;; to a dynamically named file in user defined *data-dir*.
+
 (defcommand dump-to-datadir (expr) (:rest)
   "Dump group (from current-screen), screen (current-screen), desktop or rules to file in data-dir.
 Just specify what you want to dump and this will dynamically create and name file accordingly."
@@ -41,7 +42,6 @@ Just specify what you want to dump and this will dynamically create and name fil
 (defcommand dump-desktop-to-file (file) ((:rest "desktop to file: "))
   "Dumps the frames of all groups of all screens to the named file."
   (dump-to-file (dump-desktop) file))
-
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Groups ;;
@@ -78,7 +78,6 @@ differs from RESTART, which restarts the unix process.
   (throw :top-level :restart))
 
 
-
 (defcommand restart-soft () ()
   "Soft Restart StumpWM while remembering current state.
 The lisp process isn't restarted. Instead, control jumps
@@ -86,7 +85,7 @@ to the very beginning of the stumpwm program. This
 differs from RESTART, which restarts the unix process.
 
 Since the process isn't restarted, existing customizations remain
-after the restart." 
+after the restart."
   (remember-all) (restart-soft-forget))
 
 (defcommand-alias restart restart-soft)

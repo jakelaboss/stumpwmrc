@@ -16,8 +16,6 @@
 
 ;; (ql:quickload :swank)
 
-(load "/home/vagabond/.emacs.d/elpa/slime-20161109.640/swank-loader.lisp")
-(swank-loader:init)
 
 ;; For the not so lazy
 (defcommand swank () ()

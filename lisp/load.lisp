@@ -10,15 +10,15 @@
              "usocket"
              "sxql"
              "alexandria"
+             "stumpwm"
              "ironclad"
              "mito"
-             "trivial-ssh"
+             ;; "trivial-ssh"
              "cl-fad"
              "cl-ppcre"
              "hunchentoot"))
   (progn
     (ql:quickload m)))
-
 
 ;; (defvar al/cl-directory
 ;;   (directory-namestring
