@@ -9,7 +9,7 @@
 (setf *mode-line-timeout* 1)
 
 ;; Golden Ratio Variables
-(defvar *golden-ratio-resize-increment* 100)
+(defvar *golden-ratio-resize-increment* 150)
 
-(defvar *resize-increment* 10
+(defvar *resize-increment* 15
   "Number of pixels to increment by when interactively resizing frames.")

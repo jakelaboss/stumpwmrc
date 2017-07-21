@@ -66,10 +66,10 @@
   ;; (format nil "xrandr ~a ~a ~a ~a ~a ~a"; ~a ~a"
   (print
    (concatenate 'string "xrandr "
-                ;; eDP screen-center
+                eDP screen-center
                 DVI-1 screen-right
                 ;; DVI-2 disable
-                ;; DVI-2 screen-left
+                DVI-2 screen-left
                 ;; DP-2 screen-right
                 ;; Virtual screen-up
                 )))
@@ -79,8 +79,8 @@
 
 (print *main-head*)
 
-;; (head-config)
+;;  ((head-config ))
 
-(stumpwm:run-shell-command "xrandr --output eDP1 --mode 3840x2160 --pos 0x0")
-
+;; (stumpwm:run-shell-command "xrandr --output eDP1 --mode 3840x2160 --pos 0x0")
+ 
 ;; ;;------------------------------------------------------------------------------------------------------------------------ ;;
