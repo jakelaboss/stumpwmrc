@@ -37,3 +37,5 @@
                   ))
 
 ;;; END init.lisp
+
+;; ssh -i "/path/to/keyfile" root@ec2-54-173-185-85.compute-1.amazonaws.com

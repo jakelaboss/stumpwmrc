@@ -2,6 +2,25 @@
 
 (defparameter *ratio-set* nil)
 
+(current-window)
+
+;; (setf *current-window-store* (current-window))
+
+;; (let* (
+;;     (all-windows (sort-windows (current-group (current-screen))))
+;;     (current-window (current-window))
+;;            )
+;;   (where (= *current-window-store* current-window)
+;;          ()
+
+
+;; (sort-screens)
+
+;; (sort-windows (current-group (current-screen)))
+
+
+;; (print *screen-list*)
+
 (defun enable-ratio (value)
   (let ((golden-ratio-value 1.618)
     (resize-increment value))

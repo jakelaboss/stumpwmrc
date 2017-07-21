@@ -8,6 +8,11 @@
 ;; process to create a ssh link between local 4006 port and port on remote 4005 port
 ("ssh -L4006:127.0.0.1:4005 192.168.0.100")
 
+;; connect to aws instance
+("ssh -L4006:127.0.0.1:4005 -i "/home/vagabond/library/cloud/aws/keypairs/ARCH-PAIR.pem" root@ec2-54-173-185-85.compute-1.amazonaws.com")
+
+ssh client@ec2-54-205-121-221.compute-1.amazonaws.com
+
 ;; create ssh link between x11vnc on remote and on localhost:0
 ("ssh -t -L 5900:localhost:5900 192.168.0.103 'sudo x11vnc -display :0 -auth /home/arch/.Xauthority'")
 
@@ -16,3 +21,9 @@
 
 ;; to connect to desktop
 "sshfs arch@192.168.0.103:/ /home/vagabond/mnt/linux/ -p 22"
+"sshfs -p 22 arch@192.168.0.103:/ /home/vagabond/mnt/"
+sshfs -p 22 root@ec2-54-205-121-221.compute-1.amazonaws.com:/ /home/vagabond/common-lisp/libraries/linux/IRC/mnt/ -o IdentityFile="/home/vagabond/library/cloud/aws/keypairs/ARCH-PAIR.pem" 
+
+
+(defun turn-off-ethernet (list)
+  (setf (infer)))
