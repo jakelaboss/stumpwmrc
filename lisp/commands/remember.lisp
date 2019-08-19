@@ -126,3 +126,6 @@ after the restart."
                                         (find-group (current-screen) *scratchpad-group-name*)
                                         (current-group))))))
                     (throw :toplevel :quit))
+
+(all-windows)
+(if-let ())
