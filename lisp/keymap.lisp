@@ -14,7 +14,6 @@
 ;;     m
 ;;     ))
 ;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:set-prefix-key "j") *main-map*)
-
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Applications ;;
 (defvar *application-bindings*
