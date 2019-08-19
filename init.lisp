@@ -16,7 +16,7 @@
 
 (in-package :stumpwm)
 
-(load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
+;; (load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
 
 ;; (swank-loader:init)
 

@@ -19,29 +19,55 @@
 ;; Applications ;;
 (defvar *application-bindings*
    (let ((m (stumpwm:make-sparse-keymap)))
-     (stumpwm:define-key m (stumpwm:kbd "e") "gnext")
-     (stumpwm:define-key m (stumpwm:kbd "e") "exec emacs")
+     ;; (stumpwm:define-key m (stumpwm:kbd "e") "gnext")
+     (stumpwm:define-key m (stumpwm:kbd "e") "exec sh -c 'emacsclient -c .'")
+     ;; (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
+     (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c 'primusrun emacs'")
+     (stumpwm:define-key m (stumpwm:kbd "a") "exec arandr")
+     (stumpwm:define-key m (stumpwm:kbd "v") "exec pavucontrol-qt")
      (stumpwm:define-key m (stumpwm:kbd "u") "exec urxvt")
-     (stumpwm:define-key m (stumpwm:kbd "s") "exec slack")
+     (stumpwm:define-key m (stumpwm:kbd "s") "exec rofi -show ssh")
+     (stumpwm:define-key m (stumpwm:kbd "S") "exec steam")
      (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
+     (stumpwm:define-key m (stumpwm:kbd "k") "exec keypass")
+     (stumpwm:define-key m (stumpwm:kbd "p") "exec plover")
+     (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show drun")
+     (stumpwm:define-key m (stumpwm:kbd "f") "exec firefox-developer-edition")
+     (stumpwm:define-key m (stumpwm:kbd "F") "exec primusrun firefox-developer-edition")
      (stumpwm:define-key m (stumpwm:kbd "XF86AudioPlay") "exec spotify")
      (stumpwm:define-key m (stumpwm:kbd "g") "exec google-chrome-beta")
      m ; NOTE: this is important
      ))
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-a") '*application-bindings*)
 
+(defcommand pavucontrol () ()
+  (if (run-commands "exec pavucontrol-qt")
+      (progn
+        (select-window "Volume Control")
+        (run-commands "redisplay"))))
+
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Group Configuration ;;
 (defvar *group-bindings*
   (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "l") "gnext")
-    (stumpwm:define-key m (stumpwm:kbd "h") "gprev")
+    ;; (stumpwm:define-key m (stumpwm:kbd "l") "gnext")
+    (stumpwm:define-key m (stumpwm:kbd "l") "gnext-swank")
+    (stumpwm:define-key m (stumpwm:kbd "s-l") "gnext-swank")
+    ;; (stumpwm:define-key m (stumpwm:kbd "h") "gprev")
+    (stumpwm:define-key m (stumpwm:kbd "s-h") "gprev-swank")
+    (stumpwm:define-key m (stumpwm:kbd "h") "gprev-swank")
     (stumpwm:define-key m (stumpwm:kbd "L") "gnext-with-window")
     (stumpwm:define-key m (stumpwm:kbd "H") "gprev-with-window")
+    (stumpwm:define-key m (stumpwm:kbd "m") "gmove")
     (stumpwm:define-key m (stumpwm:kbd "w") "grouplist")
     (stumpwm:define-key m (stumpwm:kbd "n") "gnew")
+    (stumpwm:define-key m (stumpwm:kbd "N") "gnew-float")
     (stumpwm:define-key m (stumpwm:kbd "q") "gkill")
     (stumpwm:define-key m (stumpwm:kbd "r") "grename")
+    (stumpwm:define-key m (stumpwm:kbd "k") "screen-next")
+    (stumpwm:define-key m (stumpwm:kbd "j") "screen-prev")
+    (stumpwm:define-key m (stumpwm:kbd "s") "snew")
+    (stumpwm:define-key m (stumpwm:kbd "W") "screen-select")
     m ; NOTE: this is important
     ))
 
@@ -53,17 +79,39 @@
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
     (stumpwm:define-key m (stumpwm:kbd "w") "windowlist")
+    (stumpwm:define-key m (stumpwm:kbd "W") "all-windowlist")
     (stumpwm:define-key m (stumpwm:kbd "R") "title")
     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
+    (stumpwm:define-key m (stumpwm:kbd "c") "center-frame")
     (stumpwm:define-key m (stumpwm:kbd "m") "mode-line")
     (stumpwm:define-key m (stumpwm:kbd "g") "gaps")
     (stumpwm:define-key m (stumpwm:kbd "f") "fullscreen")
+    (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
+    (stumpwm:define-key m (stumpwm:kbd "L") "reset-backlight")
+    (stumpwm:define-key m (stumpwm:kbd "n") "net-scan")
     m ; NOTE: this is important
     ))
 
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-f") '*frame-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Appearance Configuration
+
+(defvar *wallpaper-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "o") "set-to-orange")
+    (stumpwm:define-key m (stumpwm:kbd "g") "set-to-green")
+    (stumpwm:define-key m (stumpwm:kbd "G") "set-to-grass")
+    (stumpwm:define-key m (stumpwm:kbd "m") "set-to-mountains")
+    (stumpwm:define-key m (stumpwm:kbd "p") "set-to-purple-mountains")
+    (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
+    m ; NOTE: this is important
+    ))
+
+(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-w") '*wallpaper-bindings*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+
 ;; Mode Commands ;;
 ;; TODO modes should be based on cur-frame
 
@@ -94,6 +142,15 @@
 
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-e") '*emacs-bindings*)
 
+;; ------------------------------------------------------------------------------------------------------------------------ ;;
+;; Audio Config ;;
+
+(define-interactive-keymap (audio-control tile-group) ()
+  ((stumpwm:kbd "-") "dec-volume")
+  ((stumpwm:kbd "+") "inc-volume")
+  ((stumpwm:kbd "r") "reset-audio"))
+
+(define-key *top-map* (kbd "s-o") "audio-control")
 ;; ------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Mode Line Commands
 ;; (defvar *mode-line-bindings*
@@ -136,22 +193,55 @@
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
-;; Golden Ratio Bindings
+;; Toggle Bindings
 
 (defvar *toggle-bindings*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "g") "toggle-golden-ratio-command")
+    (stumpwm:define-key m (stumpwm:kbd "p") "plover-toggle")
+    (stumpwm:define-key m (stumpwm:kbd "r") "resize-popup")
+    (stumpwm:define-key m (stumpwm:kbd "G") "toggle-golden-ratio-toplevel")
+    (stumpwm:define-key m (stumpwm:kbd "h") "move-with-ratio left")
+    (stumpwm:define-key m (stumpwm:kbd "j") "move-with-ratio down")
+    (stumpwm:define-key m (stumpwm:kbd "k") "move-with-ratio up")
+    (stumpwm:define-key m (stumpwm:kbd "l") "move-with-ratio right")
     m
     ))
 
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-t") '*toggle-bindings*)
 
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
+;; Golden Ratio Bindings
+(defcommand toggle-golden-ratio-toplevel () ()
+  (if (null *golden-ratio-toplevel*)
+      (progn
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-with-ratio left")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-with-ratio down")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-with-ratio up")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-with-ratio right")
+        (setf *golden-ratio-toplevel* t))
+      (progn
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-focus down")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-focus left")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
+        (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-focus right")
+        (setf *golden-ratio-toplevel* nil))))
 
-;; Rofi
-;; (stumpwm:defcommand rofi-run ()
-;;   (inferior-shell:run "rofi -run" t))
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
+;; Rofi Bindings
+(defvar *rofi-bindings*
+  (let ((m (stumpwm:make-sparse-keymap)))
+    (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show run")
+    (stumpwm:define-key m (stumpwm:kbd "w") "exec rofi -show window")
+    (stumpwm:define-key m (stumpwm:kbd "s") "exec rofi -show ssh")
+    m
+    ))
+
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-u") '*rofi-bindings*)
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Setup Remote Swank Connection
 

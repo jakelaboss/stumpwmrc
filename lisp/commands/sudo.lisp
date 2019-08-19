@@ -1,6 +1,6 @@
 ;; ; -*- Mode: Lisp; Mode: StumpWM; -*-
 ;; ; .stumpwmrc
-;; (in-package :stumpwm)
+(in-package :stumpwm)
 
 ;; (setq *startup-message* nil)
 ;; (setq *startup-mode-line* t)
@@ -19,63 +19,85 @@
     (run-shell-command
      (concat command " " options " " (when background "&")))))
 
-(defun kill-ps-command (command)
+(defun kill-ps-command ()
   (format nil "kill -TERM `ps -ef | grep ~S | grep -v grep | awk '{print $2}'`"
           command))
 
 (defun kill-ps (command)
   (run-shell-command (kill-ps-command command)))
 
-;; ; --- stumpwm command definitions -------------------------------
-;; (defmacro def-run-or-raise-command (cmd prop)
-;;   (let ((cmd-str (string-downcase (symbol-name cmd))))
-;;     `(defcommand ,cmd () ()
-;;        (run-or-raise ,cmd-str ,prop))))
+(defcommand ps () ()
+  (when-let ((network (car (select-from-menu (current-screen)
+                                             (mapcar (lambda (g) (list g))
+                                                     (cl-ppcre:split "\\n"
+                                                                     (sudo-run "netctl list")))
+                                             "All running processes"))))
+    (sudo-run (format nil "netctl switch-to ~a" network))))
 
-;; (def-run-or-raise-command gnome-terminal '(:class "Gnome-terminal"))
-;; ;(def-run-or-raise-command mlterm '(:class "mlterm"))
-;; ;(def-run-or-raise-command urxvt '(:class "URxvt"))
-;; (def-run-or-raise-command firefox '(:class "Firefox"))
-;; (def-run-or-raise-command soffice '(:class "soffice"))
-;; (def-run-or-raise-command virtualbox '(:class "VirtualBox"))
+(defcommand pkill () (:rest)
+  (when-let ((process (car (select-from-menu (current-screen)
+                                             (remove nil
+                                                     (mapcar (lambda (x)
+                                                               (cdr (cl-ppcre:split "\\d+:\\d+:\\d+ " x)))
+                                                             (cl-ppcre:split "\\n"
+                                                                             (sudo-run "ps -al"))))
+                                             "Choose a process to kill:"))))
+    (sudo-run (format nil "pkill ~a" process))))
 
-;; (defcommand ps-kill (ps) ((:rest "Process to kill: "))
-;;   (kill-ps ps))
-
-;; (defcommand emacs () ()
-;;   (run-or-raise "emacs" '(:class "Emacs")))
-
-;; (defcommand nm-applet () ()
-;;   (start-uniq-command-ps "nm-applet" :options "--sm-disable"))
-
-;; (defcommand show-battery () ()
-;;   (echo-string (current-screen) (run-shell-command "acpi" t)))
-
-;; (defcommand uptime () ()
-;;   (echo-string (current-screen) (run-shell-command "uptime" t)))
-
-;; (defcommand gnome-panel () ()
-;;   (if (ps-exists "gnome-panel")
-;;     (progn (kill-ps "gnome-panel")
-;;            (sleep 0.3)
-;;            (when *startup-mode-line*
-;;              (run-shell-command "stumpish mode-line")))
-;;     (progn (when (head-mode-line (current-head))
-;;              (mode-line))
-;;            (run-shell-command "gnome-panel"))))
-
-;; ; --- run commands  ---------------------------------------
-;; (run-shell-command "xsetroot -solid black")
-;; (run-shell-command "/opt/atokx3/sample/iiimf_status_hide")
-;; (nm-applet)
-;; (start-uniq-command-ps "gnome-settings-daemon")
-;; (start-uniq-command-ps "gnome-power-manager")
-;; (start-uniq-command-ps "gnome-valume-manager")
-;; (start-uniq-command-ps "update-notifier")
-;; (run-shell-command "~/src/backup/alert.sh")
-;; (emacs)
 
 ; --- sudo command definitions  --------------------------------
+
+;; 1,228,800,000,000
+
+(ql:quickload :ironclad)
+(defun get-cipher (key)
+  (ironclad:make-cipher :blowfish
+                        :mode :ecb
+                        :key (ironclad:ascii-string-to-byte-array key)))
+
+(defun encrypt (plaintext key)
+  (let ((cipher (get-cipher key))
+      (msg (ironclad:ascii-string-to-byte-array plaintext)))
+    (ironclad:encrypt-in-place cipher msg)
+    (ironclad:octets-to-integer msg)))
+
+;;Example for encrypt
+;; (with-open-file (s "filename" :direction :output :if-exists :supersede :if-does-not-exist :create)
+;;   (write (encrypt "thisisanexamplepassword" "passwordkey") :stream s))
+
+(defun decrypt (ciphertext-int key)
+  (let ((cipher (get-cipher key))
+      (msg (ironclad:integer-to-octets ciphertext-int)))
+    (ironclad:decrypt-in-place cipher msg)
+    (coerce (mapcar #'code-char (coerce msg 'list)) 'string)))
+
+;; Example decrypt from file
+;; (with-open-file (s "filename")
+;;   (decrypt  (read s) "passwordkey"))
+
+(defvar *sudo-password* (parse-integer (read-line (open "/home/vagabond/common-lisp/libraries/linux/network/password"))))
+(defvar *root-password* (parse-integer (read-line (open "/home/vagabond/common-lisp/libraries/linux/network/root"))))
+
+(defun sudo-password () (decrypt *sudo-password* *lisp-password*))
+(defun root-password () (decrypt *root-password* *lisp-password*))
+
+(defun sudo-run (command)
+  (if (stringp command)
+      (inferior-shell:run/ss (format nil
+                                     "echo \"~a\" | sudo -S sh -c '~a'"
+                                     (sudo-password)
+                                     command))
+      (error "Command not of type: String")))
+
+(defun sudo-command (command)
+  (if (stringp command)
+      (inferior-shell:run/ss (format nil
+                                     "echo \"~a\" | sudo -S sh -c '~a'"
+                                     (sudo-password)
+                                     command))
+      (error "Command not of type: String")))
+
+;; Stumpwm password type
 (define-stumpwm-type :password (input prompt)
   (let ((history *input-history*)
         (arg (argument-pop input))
@@ -97,14 +119,22 @@
 (defmacro define-sudo-command (name command &key output)
   (let ((cmd (gensym)))
     `(defcommand ,name (password) ((:password "sudo password: "))
-      (let ((,cmd (concat "echo '" password "' | sudo -S " ,command)))
-        ,(if output
-             `(run-prog-collect-output *shell-program* "-c" ,cmd)
-             `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
+       (let ((,cmd (concat "echo '" password "' | sudo -S " ,command)))
+         ,(if output
+              `(run-prog-collect-output *shell-program* "-c" ,cmd)
+              `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
 
-(define-sudo-command eon
-  (concat "pon em"
-          (when (ps-exists "nm-applet")
-            (concat "&& sudo " (kill-ps-command "nm-applet"))))
-  :output t)
+(defmacro define-su-command (name user command &key output)
+  (let ((cmd (gensym)))
+    `(defcommand ,name (password) ((:password "user password: "))
+       (let ((,cmd (concat "echo '" password "' | su -c '" ,command "'" ,user)))
+         ,(if output
+              `(run-prog-collect-output *shell-program* "-c" ,cmd)
+              `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
 
+(defcommand send-sudo-password () ()
+  (window-send-string (concat (sudo-password) (string #\Newline))))
+
+
+(defcommand send-root-password () ()
+  (window-send-string (concat (root-password) (string #\Newline))))

@@ -4,7 +4,7 @@
 (in-package :stumpwm)
 
 ;; Prefix Key ;;
-(set-prefix-key (kbd "C-z"))
+(set-prefix-key (kbd "s-x"))
 
 
 ;; Interactive Colon ;;
@@ -57,3 +57,13 @@
 ;;   (define-sudo-command vpn (concatenate 'string "openvpn /etc/openvpn/" (concatenate 'string conf ".conf"))))
 
 ;; (vpn "Brazil")
+
+
+(defun flat-list (l)
+  "Function that 'flatten a list."
+  (cond ((null l) nil)
+        #+sbcl((eq (type-of l) 'sb-impl::comma)
+               (flat-list (sb-impl::comma-expr l)))
+        ((atom l) (list l))
+        (t (append (flat-list (first l))
+                   (flat-list (rest l))))))

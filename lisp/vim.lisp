@@ -1,11 +1,13 @@
 ;; ;;-------~---~----------~----------~----
 ;; ;; Evil Mode for Stump using Windows Key ;;
 ;; ;;-------~---~----------~----------~----
+(in-package :stumpwm)
 
 ;; Movement Mapping ;;
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-focus down")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-focus left")
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
+;; (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus-up")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-focus right")
 
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-J") "move-window down")
@@ -39,8 +41,27 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-;") "colon")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-:") "eval")
 
+;; Sudo Commands ;;
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-i") "send-sudo-password")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-I") "send-root-password")
+
+
 ;; (uiop:run-program "sudo mount -t ntfs-3g /dev/sd?n /where/to/mnt)
 
 ;; (in-package :stumpwm)
 ;; (stumpwm:undefine-key *top-map* (stumpwm:kbd "s-d"))
+
+;; Num Arguments
+;; (defvar *num-args* (member :command (print *top-map*))
+;; (dotimes (i 9)
+;;   (stumpwm:define-key *top-map* (stumpwm:kbd (format nil "s-~a" i))  (dotimes (i 2) *top-map*))
+;;     (stumpwm:define-key *top-map* (stumpwm:kbd "s-:") "eval"))
+
+
+;; (stumpwm:define-key *top-map* (stumpwm:kbd "s-2")  (dotimes *top-map*))
+;; (stumpwm:define-key *top-map* (stumpwm:kbd "s-2")  *top-map*))
+
+
+
+
 

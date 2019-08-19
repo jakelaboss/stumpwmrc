@@ -15,18 +15,46 @@
 ;; (load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
 ;; (swank-loader:init)
 
+(ql:quickload :swank-client)
 ;; For the not so lazy
 (defcommand swank () ()
-  (swank:create-server :port 4005 :style swank:*communication-style*
+  (swank:create-server :port 4006 :style swank:*communication-style*
                        :dont-close t)
   (echo-string (current-screen)
-               "Starting swank. M-x slime-connect RET RET, then (in-package stumpwm)."))
+               "Starting swank on port 4006."))
+
+(defcommand swank-lan () ()
+  (swank:create-server :port 4008 :style swank:*communication-style* :interface "10.10.10.230"
+                       :dont-close t)
+  (echo-string (current-screen)
+               "Starting swank on port 4006."))
+
+;; (defun test-list (&rest data)
+;;   (mapcan #'(lambda (y) `(,(loop for x from 0 to (length y) collect x) ,y)) data))
+
+
+(defparameter *desktop-swank* nil)
+
+(defcommand desktop-connect () ()
+  ;; (defparameter *desktop-swank* (swank-client:slime-connect "localhost" 4007 (setf *desktop-swank* nil))))
+  (defparameter *desktop-swank* (swank-client:slime-connect "10.10.10.225" 4006 (setf *desktop-swank* nil))))
 
 ;; (defcommand
-;;     [swank:create-server :port 4006 :style swank:*communication-style*)
+    ;; [swank:create-server :port 4006 :style swank:*communication-style*)
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Rewrite some commands
+(in-package :stumpwm)
+
+
+;; (bt:make-thread
+;; (defun swank-monitor (start-or-stop)
+;;   (and start-or-stop (ppcre:scan "open" (inferior-shell:run/s "nmap 192.168.0.161 -p 4006"))
+;;      (progn
+;;        (sleep 60)
+;;        (defparameter *desktop-swank* (swank-client:slime-connect "192.168.0.161" 4006))
+;;        (swank-monitor start-or-stop))
+;;      (defparameter *desktop-swank* nil))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
@@ -44,45 +72,8 @@
     A shortcut for (concatenate 'string foo bar)."
   (apply 'concatenate 'string strings))
 
-(defun update-all-mode-lines ()
-  nil)
 
-;; --- sudo command definitions  --------------------------------
-(define-stumpwm-type :password (input prompt)
-  (let ((history *input-history*)
-        (arg (argument-pop input))
-        (fn (symbol-function 'draw-input-bucket)))
-    (unless arg
-      (unwind-protect
-           (setf (symbol-function 'draw-input-bucket)
-                 (lambda (screen prompt input &optional errorp)
-                   (let ((i (copy-structure input)))
-                     (setf (input-line-string i)
-                           (make-string (length (input-line-string i))
-                                        :initial-element #\*))
-                     (funcall fn screen prompt i)))
-                 arg (read-one-line (current-screen) prompt))
-        (setf (symbol-function 'draw-input-bucket) fn
-              *input-history* history))
-      arg)))
-
-(defmacro define-sudo-command (name command &key output)
-  (let ((cmd (gensym)))
-    `(defcommand ,name (password) ((:password "sudo password: "))
-       (let ((,cmd (concat "echo '" password "' | sudo -S " ,command)))
-         ,(if output
-              `(run-prog-collect-output *shell-program* "-c" ,cmd)
-              `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
-
-(defmacro define-su-command (name user command &key output)
-  (let ((cmd (gensym)))
-    `(defcommand ,name (password) ((:password "user password: "))
-       (let ((,cmd (concat "echo '" password "' | su -c '" ,command "'" ,user)))
-         ,(if output
-              `(run-prog-collect-output *shell-program* "-c" ,cmd)
-              `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
-
-;; Postgresql commands
+; --- Postgresql commands ----------------------------------------
 
 (define-su-command pg-start "postgres" (concat "pg_ctl start -D " *pg-data*) :output t)
 
@@ -93,32 +84,6 @@
 ;; (define-su-command pg- "postgres" (concat "pg_ct status -D " *pg-data*))
 
 ;; (define-sudo-command mount-media "mount -t ntfs-3g /dev/sda2 /home/vagabond/library/media/mnt/")
-
-;; VPN ;;
-
-(defun vpn (conf)
-  (format nil (concatenate 'string
-                           "openvpn /etc/openvpn/"
-                           (concatenate 'string conf ".conf"))))
-
-;; (define-sudo-command vpn (vpn "Brazil"))
-
-; --- process management ----------------------------------------
-(defun ps-exists (ps)
-  (let ((f "ps -ef | grep ~S | grep -v -e grep -e stumpish | wc -l"))
-    (< 0 (parse-integer (run-shell-command (format nil f ps) t)))))
-
-(defun start-uniq-command-ps (command &key options (background t))
-  (unless (ps-exists command)
-    (run-shell-command
-     (concat command " " options " " (when background "&")))))
-
-(defun kill-ps-command (command)
-  (format nil "kill -TERM `ps -ef | grep ~S | grep -v grep | awk '{print $2}'`"
-          command))
-
-(defun kill-ps (command)
-  (run-shell-command (kill-ps-command command)))
 
 
 ;; Redefined - with `if`s for *useless-gaps-on*
@@ -173,8 +138,57 @@
               (if (string= (class-name (class-of w)) "TILE-WINDOW")
                   (maximize-window w))) windows)))
 
+(defcommand all-windowlist (&optional (fmt *window-format*) window-list) (:rest)
+  (let ((window-list (or window-list
+                      (mapcar #'(lambda (x)
+                                  (cons (window-name x)
+                                        (cons (window-number x)
+                                              (window-group x))))
+                              (sort-windows-by-number
+                               (screen-windows (current-screen)))))))
+    (if (null window-list)
+        (message "No Managed Windows")
+        ;; (let ((window (select-window-from-menu window-list fmt)))
+        (let* ((win-cons (select-from-menu (current-screen) window-list))
+               (window
+                 (select-window-by-number
+                        (cadr win-cons)
+                        (cddr win-cons))))
+          (if (null win-cons) (throw 'error :abort)
+              (progn
+                (switch-to-group (cddr win-cons))
+                (select-window-by-number (cadr win-cons) (cddr win-cons))))))))
+
+;; (let ((game "spotify")
+;;     (window-name "spotify"))
+;;   (inferior-shell:run/ss (format nil "xdotool search -all --pid ~a --name ~a"
+;;                                (inferior-shell:run/ss (format nil "pgrep -u vagabond ~a" game))
+;;                                window-name)))
+
+
 ;; Hope this works
+
+; --- Group Commands ----------------------------------------
 ;; Redefine group commands
+
+(defun move-all-windows-to-group (&optional (group (next-group (current-group))))
+  (move-windows-to-group (list-windows (current-group)) group))
+
+;; (defcommand gnext-with-all () ()
+;;   (let ((next (next-group (current-group)))
+;;       (win (group-current-window (current group))))
+;;     (when (and next win)
+;;       (move-window-to-group win next)
+;;       (really-raise-window win)))
+
+
+(defcommand gnext-with-all () ()
+  (move-all-windows-to-group (next-group (sort-groups (current-screen)))))
+
+(defcommand gprev-with-all () ()
+  (move-all-windows-to-group (car (nreverse (sort-groups (current-screen))))))
+
+(next-group (current-group))
 
 (defun group-forward (current list)
   "Switch to the next non-hidden-group in the list, if one
@@ -205,10 +219,6 @@ window along."
   (group-forward-with-window (current-group)
                              (reverse (sort-groups (current-screen)))))
 
-(defcommand set-backlight (number)
-  '(eval (stumpwm:run-shell-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" number))))
-
-
 (defcommand gaps () ()
    "Toggle the padding of tiled windows"
    (setf *useless-gaps-on* (null *useless-gaps-on*))
@@ -218,4 +228,188 @@ window along."
    ;;     (run-hook 'frame-gap-on)
    ;;     (run-hook 'frame-gap-off))
    (reset-all-windows))
+
+;; Swank Commands
+
+(defun group-forward-swank ()
+  (let ((group-name (group-name
+                   (next-group (current-group)
+                               (sort-groups (current-screen))))))
+    (swank-client:slime-eval-async
+     `(if (equal (group-name
+                  (next-group (current-group)
+                              (sort-groups (current-screen))))
+                 ,group-name)
+          (switch-to-group
+           (next-group (current-group)
+                       (sort-groups (current-screen)))))
+     *desktop-swank*)))
+
+(defun group-backward-swank ()
+  (let ((group-name (group-name
+                   (next-group (current-group)
+                               (nreverse (sort-groups (current-screen)))))))
+    (swank-client:slime-eval-async
+     `(if (equal (group-name
+                  (next-group (current-group)
+                              (nreverse (sort-groups (current-screen)))))
+                 ,group-name)
+          (switch-to-group
+           (next-group (current-group)
+                       (nreverse (sort-groups (current-screen))))))
+     *desktop-swank*)))
+
+(defcommand gnext-swank () ()
+  (if *desktop-swank*
+      (progn (group-forward-swank)
+             (gnext))
+      (gnext)))
+
+(defcommand gprev-swank () ()
+  (if *desktop-swank*
+      (progn (group-backward-swank)
+             (gprev))
+      (gprev)))
+
+(defcommand gnext-with-window-swank () ()
+  (if *laptop-swank*
+      (progn (group-forward-swank)
+             (gnext-with-window))
+      (gnext-with-window)))
+
+(defcommand gprev-with-window-swank () ()
+  (if *laptop-swank*
+      (progn (group-backward-swank)
+             (gprev-with-window))
+      (gprev-with-window)))
+
+(defcommand move-focus-up () ()
+  (if (= (frame-y (tile-group-current-frame (current-group))) 0)
+      (inferior-shell:run/s "xdotool key Up"))
+      ;; (bordeaux-threads:make-thread (lambda ()
+      ;;                                 (swank-client:slime-eval-async
+      ;;                                  '(synergy-up) *desktop-swank*)))
+      (move-focus :up))
+
+;; (progn (sleep 5)
+;;        (inferior-shell:run/s "xdotool key Up"))
+
+(defcommand synergy-focus () ()
+  (send-meta-key *current-screen* (kbd "s-Up")))
+
+(defcommand synergy-up () ()
+  (synergy-focus) nil)
+
+
+(defun resize-dialogue (window)
+  (let ( ;(window (cadr (stumpwm:group-windows (current-group))))
+         (frame (window-frame window)))
+    ;; (list (list (frame-width frame) (frame-height frame) (frame-x frame) (frame-y frame))
+  ;; (list (window-width window) (window-height window) (window-x window) (window-y window))))
+    (progn
+    (activate-fullscreen window)
+    (deactivate-fullscreen window))))
+
+(defcommand resize-popup () ()
+  (if (equal (window-type (current-window)) :DIALOG)
+      (resize-dialogue (current-window))))
+
+    ;; (float-window-move-resize window
+    ;;                           ;; (*window-placement-rules* (current-screen) window))
+    ;;                           :x (frame-x frame)
+    ;;                           :y (frame-y frame)
+    ;;                           :width (- (frame-width frame) 8))
+    ;;                           :height (- (frame-height frame) 41))
+
+; --- Brightness ----------------------------------------
+
+(defvar *brightness-increment* nil)
+(defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
+(defvar *keyboard-brightness-max* (read (open "/sys/class/leds/asus::kbd_backlight/max_brightness")))
+
+(defcommand set-backlight (x) ((:number "Set backlight to %: "))
+  "Set backlight to a specified number out of 100"
+  (if (< 100 x) (error "Cannot be Above 100")
+      (let ((percent (floor (* x *max-brightness*) 100)))
+        (sudo-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" percent)))))
+
+(defcommand increase-brightness () ()
+  (let* ((c1 (stumpwm:run-shell-command "cat /sys/class/backlight/intel_backlight/brightness" t))
+         (n (parse-integer c1))
+         (to-set (+ n 50)))
+    (sudo-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" to-set))))
+
+(defcommand decrease-brightness () ()
+  (let* ((c1 (stumpwm:run-shell-command "cat /sys/class/backlight/intel_backlight/brightness" t))
+         (n (parse-integer c1))
+         (to-set (- n 50)))
+    (sudo-command (format nil "tee /sys/class/backlight/intel_backlight/brightness <<< ~a" to-set))))
+
+(defcommand keyboard-backlight (x) ((:number "Set keyboard backlight to : "))
+  ;; "Set backlight to a specified number out of 100"
+  (if (< *keyboard-brightness-max* x) (error "number to big")
+      (let ((numb x))
+        (sudo-command (format nil "tee /sys/class/leds/asus::kbd_backlight/brightness <<< ~a" numb)))))
+
+(defcommand reset-backlight () ()
+  (run-shell-command "xset s activate"))
+
+; --- Number Arguments ----------------------------------------
+
+(defcommand num-times (num-times &rest commands) ((:number) :rest)
+  (dotimes (i num-times)
+    (stumpwm:run-commands commands)))
+
+
+; --- Volume ----------------------------------------
+
+(defcommand inc-volume () ()
+  (print (cl-ppcre:scan-to-strings
+          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a%+" 5)))))
+
+(defcommand dec-volume () ()
+  (print (cl-ppcre:scan-to-strings
+          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a%-" 5)))))
+
+(defcommand reset-audio () ()
+  (run-shell-command "bash /home/vagabond/libraries/builds/zenbook-pro-ux501vw-sound-fix/fix-audio.sh"))
+
+;; ideas for restarting audio after suspend
+;; $ pacmd list-cards
+;; $ fuser -v /dev/snd/*
+
+; ---- Xpra ----------------------------------------
+
+(defcommand xpra (password) (:rest)
+  (inferior-shell:run/s "xpra start ssh:dev-server:7 --start=firefox-developer-edition --auto-refresh-delay=.01 --encoding=h264"))
+
+; --- Plover ----------------------------------------
+
+;; (defcommand plover-toggle () ()
+;;   (progn
+;;     (loop for i in '("e" "r" "f" "v" "o" "l" "\" \"")
+;;           do (run-shell-command (concatenate 'string "xdotool keydown " i)))
+;;     (loop for i in '("e" "r" "f" "v" "o" "l" "\" \"")
+;;           do (run-shell-command (concatenate 'string "xdotool keyup " i)))))
+
+;; (defcommand plover-toggle () ()
+;;   (run-shell-command "xdotool key e r f v o l " ))
+
+; --- Layout ----------------------------------------
+
+;; TODO make an actual layout system
+;; Man, This is super ugly
+(defcommand center-frame () ()
+  (progn (hsplit) (hsplit)
+         (balance-frames) (move-window :right)
+         (move-focus :left) (hsplit)
+         (remove-split) (fclear)
+         (move-focus :right) (move-focus :right)
+         (hsplit) (remove-split)
+         (fclear) (move-focus :left)))
+
+; --- Export ----------------------------------------
+
+(export '(stumpwm::password))
+
 

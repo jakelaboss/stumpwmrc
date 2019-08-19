@@ -11,3 +11,6 @@
              "app-menu"
             ))
     (stumpwm:load-module m))
+
+
+(stumpwm:load-module "ttf-fonts")

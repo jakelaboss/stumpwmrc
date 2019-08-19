@@ -9,8 +9,10 @@
 (run-shell-command "xmodmap -e 'clear Lock'") ;; Sets Caps-lock to ESC key
 (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
 (stumpwm:run-shell-command "xmodmap ~/.Xmodmap");; Set Brackets to Parans
+(stumpwm:run-shell-command "libinput-gestures-setup start")
 ;; ;;   )
 
+;; (stumpwm:run-shell-command "set-font -m 8859-2")
 ;; (sometimes) the external monitors need to be reset
 
 ;; (defun displaylink-monitor-reset ()
