@@ -79,6 +79,8 @@
     (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
     (stumpwm:define-key m (stumpwm:kbd "w") "windowlist")
     (stumpwm:define-key m (stumpwm:kbd "W") "all-windowlist")
+    (stumpwm:define-key m (stumpwm:kbd "e") "browser-menu")
+    (stumpwm:define-key m (stumpwm:kbd "E") "browser-history")
     (stumpwm:define-key m (stumpwm:kbd "R") "title")
     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
     (stumpwm:define-key m (stumpwm:kbd "c") "center-frame")

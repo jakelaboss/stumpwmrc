@@ -20,6 +20,7 @@
 (defcommand push-meta-key (key) ((:string key))
   (send-fake-key (current-window) (parse-key key)))
 
+
   ;; (defcommand push-key (x) ((:string x))
   ;;   (send-fake-key (current-window) (parse-key x)))
 
@@ -83,6 +84,49 @@
 ;; Because the *key-press-hook* only activates for the current keymap
 ;; we define a keymap that has coverage for virtually all keys, as well as
 ;; commands to
+(defmacro define-interactive-keymap
+    (name (&key on-enter on-exit abort-if (exit-on '((kbd "RET")
+                                                     (kbd "ESC")
+                                                     (kbd "C-g"))))
+     &body key-bindings)
+  "Declare an interactive keymap mode. This can be used for developing
+interactive modes or command trees, such as @command{iresize}.
+
+The NAME argument follows the same convention as in @command{defcommand}.
+
+ON-ENTER and ON-EXIT are optional functions to run before and after the
+interactive keymap mode, respectively. If ABORT-IF is defined, the interactive
+keymap will only be activated if calling ABORT-IF returns true.
+
+KEY-BINDINGS is a list of the following form: ((KEY COMMAND) (KEY COMMAND) ...)
+
+Each element in KEY-BINDINGS declares a command inside the interactive keymap.
+Be aware that these commands won't require a prefix to run."
+  (let* ((command (if (listp name) (car name) name))
+         (exit-command (format nil "EXIT-~A" command))
+         (keymap (gensym "m")))
+    (multiple-value-bind (key-bindings decls docstring)
+        (parse-body key-bindings :documentation t)
+      `(let ((,keymap (make-sparse-keymap)))
+         ,@(loop for keyb in key-bindings
+                 collect `(define-key ,keymap ,@keyb))
+         ,@(loop for keyb in exit-on
+                 collect `(define-key ,keymap ,keyb ,exit-command))
+
+         (defcommand ,name () ()
+           ,@decls
+           ,(or docstring
+                (format nil "Starts interactive command \"~A\"" command))
+           ,@(when abort-if `((when (funcall ,abort-if)
+                                (return-from ,command))))
+
+           ,@(when on-enter `((funcall ,on-enter)))
+           (enter-interactive-keymap ,keymap (quote ,command)))
+
+         (defcommand ,(intern exit-command) () ()
+           ,@(when on-exit `((funcall ,on-exit)))
+           (exit-interactive-keymap (quote ,command)))))))
+
 
 (defmacro def-interactive-keymap ()
   `(define-interactive-keymap (macro-keymap tile-group) (:on-enter #'start-macros :on-exit #'stop-macros :exit-on nil)
@@ -105,6 +149,7 @@
      ;; space gets it's own command
      ((make-key :keysym 32) "push-space")
      ((kbd "ESC") "push-keycode 65307")
+     ((kbd "C-Tab") "push-meta-key \"C-Tab\"")
 
      ;; Use the top-map commands too
      ,@(mapcar #'(lambda (x)
@@ -129,6 +174,7 @@
 (define-key *top-map* (kbd "s-)") "end-macro-def")
 (define-key *top-map* (kbd "s-'")  "replay-macros")
 
+(def-interactive-keymap)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Number arguments
@@ -137,6 +183,7 @@
 
 (defun number-times-record-fn (key key-seq cmd)
   "Add the key to the bindings recording."
+  (declare (ignorable key key-seq))
   (if (stringp cmd)
       (push cmd *dotimes-commands*)))
 
@@ -153,12 +200,14 @@
                              (remove-hook *key-press-hook* 'number-times-record-fn)))))
 
 
-(define-key *top-map* (kbd "s-2") "eval (number-times 2)")
-(define-key *top-map*  (kbd "s-3") "eval (number-times 3)")
-(define-key *top-map*  (kbd "s-4") "eval (number-times 4)")
-(define-key *top-map*  (kbd "s-5") "eval (number-times 5)")
-(define-key *top-map*  (kbd "s-6") "eval (number-times 6)")
-(define-key *top-map*  (kbd "s-7") "eval (number-times 7)")
-(define-key *top-map*  (kbd "s-8") "eval (number-times 8)")
-(define-key *top-map* (kbd "s-9") "eval (number-times 9)")
+(define-key *top-map* (kbd "s-2") "eval (stumpwm::number-times 2)")
+(define-key *top-map*  (kbd "s-3") "eval (stumpwm::number-times 3)")
+(define-key *top-map*  (kbd "s-4") "eval (stumpwm::number-times 4)")
+(define-key *top-map*  (kbd "s-5") "eval (stumpwm::number-times 5)")
+(define-key *top-map*  (kbd "s-6") "eval (stumpwm::number-times 6)")
+(define-key *top-map*  (kbd "s-7") "eval (stumpwm::number-times 7)")
+(define-key *top-map*  (kbd "s-8") "eval (stumpwm::number-times 8)")
+(define-key *top-map* (kbd "s-9") "eval (stumpwm::number-times 9)")
 
+
+(def-interactive-keymap)
