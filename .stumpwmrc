@@ -1,0 +1,45 @@
+;;; init.lisp --- Vital settings and loading other files
+
+;; Copyright © 2016-2020 Jake LaBossier <jakelaboss@gmail.com>
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; This file should be symlinked to "~/.stumpwmrc".
+;; I compile stumpwm with swank, but occasionally the version between swank and emacs
+;; breaks so it should be reloaded.
+
+;; Code:
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+(in-package :stumpwm)
+
+(load (car (directory "/home/vagabond/.emacs.d/elpa/slime-*/swank-loader.lisp")))
+
+
+(load "/home/vagabond/quicklisp/setup.lisp")
+
+(mapcar  #'(lambda (file)
+             (load (concat"/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/" file)))
+         '("load.lisp"
+           "var/global.lisp"
+           "startup/startup.lisp"
+           "vim.lisp"
+           "appearance/emacs.lisp"
+           "appearance.lisp"
+           "commands/sudo.lisp"
+           "commands/commands.lisp"
+           "commands/golden-ratio.lisp"
+           "commands/tile-group.lisp"
+           "commands/screen-commands.lisp"
+           "commands/browser.lisp"
+           "macro.lisp"
+           ;; "modules.lisp"
+           "keymap.lisp"
+           "map.lisp"
+           "network.lisp"
+           ))
+
+;;; END init.lisp
