@@ -51,7 +51,7 @@
 
 (ql:quickload :ironclad)
 (defun get-cipher (key)
-  (ironclad:make-cipher :blowfish
+  (ironclad:make-cipher :threefish1024
                         :mode :ecb
                         :key (ironclad:ascii-string-to-byte-array key)))
 
@@ -75,11 +75,9 @@
 ;; (with-open-file (s "filename")
 ;;   (decrypt  (read s) "passwordkey"))
 
-(defvar *sudo-password* (parse-integer (read-line (open "/home/vagabond/common-lisp/libraries/linux/network/password"))))
-(defvar *root-password* (parse-integer (read-line (open "/home/vagabond/common-lisp/libraries/linux/network/root"))))
+(defun sudo-password () (decrypt *lisp-password* *lisp-key*))
 
-(defun sudo-password () (decrypt *sudo-password* *lisp-password*))
-(defun root-password () (decrypt *root-password* *lisp-password*))
+(defun root-password () (decrypt *root-password* *lisp-key*))
 
 (defun sudo-run (command)
   (if (stringp command)
