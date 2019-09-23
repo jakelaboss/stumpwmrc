@@ -1,11 +1,13 @@
-
-;;; Global Variables
+;; Global Variables
 (in-package :stumpwm)
+(ql:quickload '(:hyperluminal-mem :lparallel :sosei))
 
 (defvar *pg-data* "/var/lib/postgres/data")
 (defvar *useless-gaps-size* 10)
 (defvar *useless-gaps-on* nil)
 (defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
+
+(setf sosei::*sosei-dir* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/")
 
 ;; Mode Line Variables
 (setf *mode-line-timeout* 1)
@@ -19,6 +21,8 @@
 (defvar *golden-ratio-toplevel* nil)
 
 ;; (export stumpwm::password)
-(defvar *lisp-password* "lisphacker")
+(defvar *lisp-password* (sosei:pread* "keys/password"))
+(defvar *root-password* (sosei:pread* "keys/root"))
+(defvar *lisp-key* (sosei::pread* "keys/key"))
 
 (defvar *transient-border-width* 2)
