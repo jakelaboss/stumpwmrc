@@ -18,7 +18,7 @@
 (ql:quickload :swank-client)
 ;; For the not so lazy
 (defcommand swank () ()
-  (swank:create-server :port 4006 :style swank:*communication-style*
+  (swank:create-server :port 4008 :style swank:*communication-style*
                        :dont-close t)
   (echo-string (current-screen)
                "Starting swank on port 4006."))

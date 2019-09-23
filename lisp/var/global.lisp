@@ -7,11 +7,6 @@
 (defvar *useless-gaps-on* nil)
 (defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
 
-;; (ql:quickload :swank-client)
-;; #-swank-client
-;; (defvar sudo-connection (swank-client:slime-connect "localhost" 4545))
-;; (defvar sudo-connection (swank-client:slime-connect "localhost" 4545))
-
 ;; Mode Line Variables
 (setf *mode-line-timeout* 1)
 
