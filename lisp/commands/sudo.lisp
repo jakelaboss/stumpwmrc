@@ -2,12 +2,8 @@
 ;; ; .stumpwmrc
 (in-package :stumpwm)
 
-;; (setq *startup-message* nil)
+(defparameter *startup-message* "Welcome Vagabond")
 ;; (setq *startup-mode-line* t)
-
-;; (loop for file in '("battery" "notifications")
-;;       do (load (make-pathname :name file :type "lisp" :directory
-;;                               '(:relative ".stumpwm.d" "contrib"))))
 
 ; --- process management ----------------------------------------
 (defun ps-exists (ps)
@@ -50,6 +46,7 @@
 ;; 1,228,800,000,000
 
 (ql:quickload :ironclad)
+
 (defun get-cipher (key)
   (ironclad:make-cipher :threefish1024
                         :mode :ecb
@@ -75,9 +72,16 @@
 ;; (with-open-file (s "filename")
 ;;   (decrypt  (read s) "passwordkey"))
 
-(defun sudo-password () (decrypt *lisp-password* *lisp-key*))
 
-(defun root-password () (decrypt *root-password* *lisp-key*))
+(defvar *salt-length* (length (decrypt *salt* *lisp-key*)))
+
+(defun sudo-password () (subseq-from-end (decrypt *lisp-password* *lisp-key*) *salt-length*))
+
+(defun root-password () (subseq-from-end (decrypt *root-password* *lisp-key*) *salt-length*))
+
+(defun check-password (pass)
+  (equalp *lisp-password*
+          (encrypt (concat pass (decrypt *salt* *lisp-key*)) *lisp-key*)))
 
 (defun sudo-run (command)
   (if (stringp command)

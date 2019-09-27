@@ -21,8 +21,11 @@
 (defvar *golden-ratio-toplevel* nil)
 
 ;; (export stumpwm::password)
+
+
+(defvar *lisp-key* (sosei::pread* "keys/key"))
+(defvar *salt* (sosei:pread* "keys/salt"))
 (defvar *lisp-password* (sosei:pread* "keys/password"))
 (defvar *root-password* (sosei:pread* "keys/root"))
-(defvar *lisp-key* (sosei::pread* "keys/key"))
 
 (defvar *transient-border-width* 2)
