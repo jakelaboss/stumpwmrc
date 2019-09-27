@@ -27,14 +27,13 @@
               *input-history* history))
       arg)))
 
-;; (export :password)
-
-;; Get Network State, returns t if network is up, nil if not
 (defun net-status (interface)
   (if (stringp interface)
       (if (equal "up" (with-open-file (s (format nil  "/sys/class/net/~a/operstate" interface))
-                        (read-line s))) "Up" "Down")
+                        (read-line s)))
+          t nil)
       (error "Interface must be a string")))
+
 
 ;; Prompt for network
 (defun select-network-from-menu (screen)
@@ -62,61 +61,66 @@
                                 net-string)
                         "Networks:"))))
 
+(defun format-network-name (network-name)
+  (cl-ppcre:regex-replace-all " "
+                              (cl-ppcre:regex-replace-all "-" network-name "_")
+                              "_"))
 
+;; add to known-networks needs to real name
 ;; Creates two commands, *wireless-wpa* and *wireless-open*, which prompts for a password
 (defun add-to-known-networks (network)
-  (macrolet ((cmd (name args interactive-args &optional body)
-               `(defcommand ,name (,@args) (,@interactive-args) ,body))
-             (run (name)
-               `(stumpwm:run-commands (format nil "~a" ',name))))
-    (progn
-      ;; if the network requires a password
-      (cmd *wireless-wpa* (password) ((:password "Input Network Password: ")) ;; X is not
-           (progn
-             (with-output-to-file (stream (concat *stumpwm-netctl*
-                                                  network)
-                                          :if-does-not-exist :create
-                                          :if-exists :overwrite)
-               (format stream "~a" (cl-ppcre:regex-replace "MyNetwork"
-                                                           (cl-ppcre:regex-replace "WirelessKey"
-                                                                                   (sudo-run "cat /etc/netctl/lisp/wireless-wpa") password)
-                                                           (car (gethash network *network-hash-table*)))))
-             (sudo-run (concat "cp " *stumpwm-netctl*
-                               network " /etc/netctl/" network))))
-      (cmd *wireless-open* () ()
-           (progn
-             (with-output-to-file (stream (concat *stumpwm-netctl* network)
-                                          :if-does-not-exist :create
-                                          :if-exists :overwrite)
-               (format stream "~a" (cl-ppcre:regex-replace "MyNetwork"
-                                                           (sudo-run "cat /etc/netctl/lisp/wireless-open")
-                                                           (car (gethash network *network-hash-table*)))))
-               (sudo-run (concat "cp " *stumpwm-netctl* network " /etc/netctl/" network))))
-           (cmd *network-entry-p* (p) ((:y-or-n "Unkown Network: Would you like to create an entry?"))
-                (if p
-                    (if (cdr (gethash network *network-hash-table*))
-                        ;; (if (gethash network *network-hash-table*)
-                        (progn (run-commands "*wireless-wpa*")
-                               (sleep 3)
-                               (if (sudo-run (concat "netctl start " network))
-                                   (sudo-run (concat "netctl switch-to " network))))
-                        (progn (run-commands "*wireless-open*")
-                               (sleep 3)
-                               (if (sudo-run (concat "netctl start " network))
-                                   (sudo-run (concat "netctl switch-to " network)))))
-                    ;; (progn (run-commands "*wireless-open*")
-                    ;; (sleep 3) (sudo-run (concat "netctl start " network))
-                    ;; (sleep 3) (sudo-run (concat "netctl switch-to " network))))
-                    nil))
-           ;; Main event
-           (if (run *network-entry-p*)
-               "Connected"
-               "No entry will be added"))))
+  (let ((netctl-name (format-network-name network)))
+    (macrolet ((cmd (name args interactive-args &optional body)
+                 `(defcommand ,name (,@args) (,@interactive-args) ,body))
+               (run (name)
+                 `(stumpwm:run-commands (format nil "~a" ',name))))
+      (progn
+        ;; if the network requires a password
+        (cmd *wireless-wpa* (password) ((:password "Input Network Password: ")) ;; X is not
+             (progn
+               (with-output-to-file (stream (concat *stumpwm-netctl*
+                                                    netctl-name)
+                                            :if-does-not-exist :create
+                                            :if-exists :overwrite)
+                 (format stream "~a" (cl-ppcre:regex-replace "MyNetwork"
+                                                             (cl-ppcre:regex-replace "WirelessKey"
+                                                                                     (sudo-run "cat /etc/netctl/lisp/wireless-wpa") password)
+                                                             (car (gethash network *network-hash-table*)))))
+               (sudo-run (concat "cp " *stumpwm-netctl*
+                                 netctl-name " /etc/netctl/" (format-network-name network)))))
+        (cmd *wireless-open* () ()
+             (progn
+               (with-output-to-file (stream (concat *stumpwm-netctl* netctl-name)
+                                            :if-does-not-exist :create
+                                            :if-exists :overwrite)
+                 (format stream "~a" (cl-ppcre:regex-replace "MyNetwork"
+                                                             (sudo-run "cat /etc/netctl/lisp/wireless-open")
+                                                             (car (gethash network *network-hash-table*)))))
+               (sudo-run (concat "cp " *stumpwm-netctl* netctl-name
+                                 " /etc/netctl/" netctl-name))))
+        (cmd *network-entry-p* (p) ((:y-or-n "Unkown Network: Would you like to create an entry?"))
+             (if p
+                 (if (cdr (gethash network *network-hash-table*))
+                     ;; (if (gethash network *network-hash-table*)
+                     (progn (run-commands "*wireless-wpa*")
+                            (sleep 3)
+                            (if (sudo-run (concat "netctl start " netctl-name))
+                                (sudo-run (concat "netctl switch-to " netctl-name))))
+                     (progn (run-commands "*wireless-open*")
+                            (sleep 3)
+                            (if (sudo-run (concat "netctl start " netctl-name))
+                                (sudo-run (concat "netctl switch-to " netctl-name)))))
+                 ;; (progn (run-commands "*wireless-open*")
+                 ;; (sleep 3) (sudo-run (concat "netctl start " network))
+                 ;; (sleep 3) (sudo-run (concat "netctl switch-to " network))))
+                 nil))
+        ;; Main event
+        (if (run *network-entry-p*)
+            "Connected"
+            "No entry will be added")))))
 
 (export '(*network-entry-p* *wireless-wpa* *wireless-open*))
 
-;; (progn (run-commands "*wireless-open*")
-;; (sudo-run (concat "netctl switch-to " network))))))))
 
 (defcommand netctl () (:rest)
   (when-let ((network (car (select-from-menu (current-screen)
@@ -126,21 +130,21 @@
                                         "Networks:"))))
     (sudo-run (format nil "netctl switch-to ~a" network))))
 
-
 (defcommand net-scan () (:rest)
-  (labels ((net (network known-list)
-             (if (null (cl-ppcre:scan-to-strings network known-list))
-                 (add-to-known-networks network)
-                 (sudo-run (format nil "netctl switch-to ~a" network)))))
-  (if (net-status "wlp3s0")
-      (let* ((network (car (select-network-from-menu (current-screen))))
-             (known-networks (sudo-run "netctl list")))
-        (net network known-networks))
-      (progn (sudo-run "ip link set wlp3s0 up")
-             (let* ((network (car (select-network-from-menu (current-screen))))
+  (unwind-protect
+       (labels ((net (network known-list)
+                  (if (null (cl-ppcre:scan-to-strings (format-network-name network) known-list))
+                      (add-to-known-networks network)
+                      (sudo-run (format nil "netctl switch-to ~a" (format-network-name network))))))
+         (if (net-status "wlp3s0")
+             (let* ((network (select-network-from-menu (current-screen)))
                     (known-networks (sudo-run "netctl list")))
-               (sudo-run "ip link set wlp3s0 down")
-               (net network known-networks))))))
+               (if network (net (car network) known-networks)))
+             (progn (sudo-run "ip link set wlp3s0 up")
+                    (let* ((network (select-network-from-menu (current-screen)))
+                           (known-networks (sudo-run "netctl list")))
+                      (sudo-run "ip link set wlp3s0 down")
+                      (if network (net (car network) known-networks))))))))
 
       ;;   (if (null (cl-ppcre:scan-to-strings network known-networks))
       ;;       (add-to-known-networks network)
