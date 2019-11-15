@@ -29,6 +29,7 @@
      (stumpwm:define-key m (stumpwm:kbd "S") "exec steam")
      (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
      (stumpwm:define-key m (stumpwm:kbd "k") "exec keypass")
+     (stumpwm:define-key m (stumpwm:kbd "K") "exec encryptr")
      (stumpwm:define-key m (stumpwm:kbd "p") "exec plover")
      (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show drun")
      (stumpwm:define-key m (stumpwm:kbd "f") "exec firefox-developer-edition")
@@ -113,6 +114,26 @@
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Connect Keymap
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; what should network be under?
+
+;; I can't do the obvious of N for network, but I can do Connect
+(defvar *connect-bindings*
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "n") "net-scan")
+    (define-key m (kbd "N") "netctl")
+    (define-key m (kbd "v") "list-vpns")
+    (define-key m (kbd "k") "kill-vpn")
+    (define-key m (kbd "k") '*common-lisp-mode*)
+    m ; NOTE: this is important
+    ))
+
+(define-key *top-map* (kbd "s-c") '*connect-bindings*)
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+
 ;; Mode Commands ;;
 ;; TODO modes should be based on cur-frame
 
@@ -120,14 +141,13 @@
 (defvar *common-lisp-mode-repl*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "c") "swank")
-    m
-    ))
+    (stumpwm:define-key m (stumpwm:kbd "r") "eval-from-clipboard")
+    m))
 
 (defvar *common-lisp-mode*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "s") '*common-lisp-mode-repl*)
-    m
-    ))
+    m))
 
 (stumpwm:define-key *common-lisp-mode* (stumpwm:kbd "e") '*common-lisp-mode-repl*)
 (stumpwm:undefine-key *top-map* (stumpwm:kbd "s"))
@@ -138,8 +158,7 @@
 (defvar *emacs-bindings*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "e") "eshell")
-    m
-    ))
+    m))
 
 (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-e") '*emacs-bindings*)
 
@@ -186,7 +205,7 @@
 
 (defvar *quit-bindings*
   (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "q") "kill")
+    (stumpwm:define-key m (stumpwm:kbd "q") "safe-kill")
     m
     ))
 

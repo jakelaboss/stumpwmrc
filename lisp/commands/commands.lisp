@@ -41,21 +41,30 @@
 
 ;; (defcommand
     ;; [swank:create-server :port 4006 :style swank:*communication-style*)
+
+(add-hook *selection-notify-hook* 'clipboard-history::save-clipboard-history)
+
+(defparameter clipboard-history::*clipboard-poll-timeout* 30)
+
+(setf *print-length* 100)
+
+
+(defun eval-current-selection ()
+  (let ((timeout clipboard-history::*clipboard-poll-timeout*))
+    (when (setf clipboard-history::*clipboard-poll-timeout* 0)
+      (if (null clipboard-history::*clipboard-timer*)
+          (clipboard-history:start-clipboard-manager))
+      (progn
+        (map nil #'clipboard-history::poll-selection '(:clipboard :primary))
+        (let ((result (eval (read-from-string (print (car clipboard-history::*clipboard-history*))))))
+          (setf clipboard-history::*clipboard-poll-timeout* timeout)
+          result)))))
+
+(defcommand eval-from-clipboard () ()
+  (unwind-protect (format nil "~a" (unwind-protect (eval-current-selection)))))
+
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
-
 ;; Rewrite some commands
-(in-package :stumpwm)
-
-
-;; (bt:make-thread
-;; (defun swank-monitor (start-or-stop)
-;;   (and start-or-stop (ppcre:scan "open" (inferior-shell:run/s "nmap 192.168.0.161 -p 4006"))
-;;      (progn
-;;        (sleep 60)
-;;        (defparameter *desktop-swank* (swank-client:slime-connect "192.168.0.161" 4006))
-;;        (swank-monitor start-or-stop))
-;;      (defparameter *desktop-swank* nil))
-
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 (defun shell-command (command) "Run a shell command and display output to screen.
@@ -81,10 +90,8 @@
 
 (define-su-command pg-stop "postgres" (concat "pg_ct stop -D " *pg-data*))
 
-;; (define-su-command pg- "postgres" (concat "pg_ct status -D " *pg-data*))
 
-;; (define-sudo-command mount-media "mount -t ntfs-3g /dev/sda2 /home/vagabond/library/media/mnt/")
-
+; --- Resize commands ----------------------------------------
 
 ;; Redefined - with `if`s for *useless-gaps-on*
 (defun maximize-window (win)
@@ -138,6 +145,7 @@
               (if (string= (class-name (class-of w)) "TILE-WINDOW")
                   (maximize-window w))) windows)))
 
+;; --- Winlist with every open window ----------------------------------------
 (defcommand all-windowlist (&optional (fmt *window-format*) window-list) (:rest)
   (let ((window-list (or window-list
                       (mapcar #'(lambda (x)
@@ -159,14 +167,18 @@
                 (switch-to-group (cddr win-cons))
                 (select-window-by-number (cadr win-cons) (cddr win-cons))))))))
 
-;; (let ((game "spotify")
-;;     (window-name "spotify"))
-;;   (inferior-shell:run/ss (format nil "xdotool search -all --pid ~a --name ~a"
-;;                                (inferior-shell:run/ss (format nil "pgrep -u vagabond ~a" game))
-;;                                window-name)))
 
+;; --- kill command with safeguard ----------------------------------------
 
-;; Hope this works
+(defun safe-kill* (window)
+  (cond ((cl-ppcre:scan "emacs" (window-name window))
+         (window-send-string " qq"))
+        ((cl-ppcre:scan "Firefox" (window-name window))
+         (push-meta-key "C-w"))
+        (t (kill-window window))))
+
+(defcommand safe-kill () ()
+  (safe-kill* (current-window)))
 
 ; --- Group Commands ----------------------------------------
 ;; Redefine group commands
@@ -174,21 +186,11 @@
 (defun move-all-windows-to-group (&optional (group (next-group (current-group))))
   (move-windows-to-group (list-windows (current-group)) group))
 
-;; (defcommand gnext-with-all () ()
-;;   (let ((next (next-group (current-group)))
-;;       (win (group-current-window (current group))))
-;;     (when (and next win)
-;;       (move-window-to-group win next)
-;;       (really-raise-window win)))
-
-
 (defcommand gnext-with-all () ()
   (move-all-windows-to-group (next-group (sort-groups (current-screen)))))
 
 (defcommand gprev-with-all () ()
   (move-all-windows-to-group (car (nreverse (sort-groups (current-screen))))))
-
-(next-group (current-group))
 
 (defun group-forward (current list)
   "Switch to the next non-hidden-group in the list, if one
@@ -291,21 +293,14 @@ window along."
       ;;                                  '(synergy-up) *desktop-swank*)))
       (move-focus :up))
 
-;; (progn (sleep 5)
-;;        (inferior-shell:run/s "xdotool key Up"))
-
 (defcommand synergy-focus () ()
   (send-meta-key *current-screen* (kbd "s-Up")))
 
 (defcommand synergy-up () ()
   (synergy-focus) nil)
 
-
 (defun resize-dialogue (window)
-  (let ( ;(window (cadr (stumpwm:group-windows (current-group))))
-         (frame (window-frame window)))
-    ;; (list (list (frame-width frame) (frame-height frame) (frame-x frame) (frame-y frame))
-  ;; (list (window-width window) (window-height window) (window-x window) (window-y window))))
+  (let ((frame (window-frame window)))
     (progn
     (activate-fullscreen window)
     (deactivate-fullscreen window))))
@@ -313,13 +308,6 @@ window along."
 (defcommand resize-popup () ()
   (if (equal (window-type (current-window)) :DIALOG)
       (resize-dialogue (current-window))))
-
-    ;; (float-window-move-resize window
-    ;;                           ;; (*window-placement-rules* (current-screen) window))
-    ;;                           :x (frame-x frame)
-    ;;                           :y (frame-y frame)
-    ;;                           :width (- (frame-width frame) 8))
-    ;;                           :height (- (frame-height frame) 41))
 
 ; --- Brightness ----------------------------------------
 
@@ -353,13 +341,6 @@ window along."
 
 (defcommand reset-backlight () ()
   (run-shell-command "xset s activate"))
-
-; --- Number Arguments ----------------------------------------
-
-(defcommand num-times (num-times &rest commands) ((:number) :rest)
-  (dotimes (i num-times)
-    (stumpwm:run-commands commands)))
-
 
 ; --- Volume ----------------------------------------
 
@@ -409,7 +390,4 @@ window along."
          (fclear) (move-focus :left)))
 
 ; --- Export ----------------------------------------
-
-(export '(stumpwm::password))
-
-
+;; TODO export useful commands/functions

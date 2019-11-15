@@ -34,7 +34,6 @@
           t nil)
       (error "Interface must be a string")))
 
-
 ;; Prompt for network
 (defun select-network-from-menu (screen)
   (labels ((ssid (x)
@@ -121,14 +120,14 @@
 
 (export '(*network-entry-p* *wireless-wpa* *wireless-open*))
 
-
 (defcommand netctl () (:rest)
   (when-let ((network (car (select-from-menu (current-screen)
-                                        (mapcar (lambda (g) (list g))
-                                                (cl-ppcre:split "\\n"
-                                                                (sudo-run "netctl list")))
-                                        "Networks:"))))
+                                             (mapcar (lambda (g) (list g))
+                                                     (cl-ppcre:split "\\n"
+                                                                     (sudo-run "netctl list")))
+                                             "Networks:"))))
     (sudo-run (format nil "netctl switch-to ~a" network))))
+
 
 (defcommand net-scan () (:rest)
   (unwind-protect
@@ -164,9 +163,7 @@
     (stumpwm:run-commands (format nil "remove-network-p ~a" network))))
 
 (defcommand remove-network-p (network p) ((:string) (:y-or-n "Remove This Network? "))
-  (if p
-      (sudo-run (format nil "rm /etc/netctl/~a" network))
-      nil))
+  (if p (sudo-run (format nil "rm /etc/netctl/~a" network)) nil))
 
 ; --- VPN ----------------------------------------
 ;; TODO create a VPN interface
@@ -177,14 +174,15 @@
                          (concatenate 'string conf ".conf"))))
 
 (defcommand list-vpns () (:rest)
-  (when-let ((network (car (select-from-menu (current-screen)
-                                             (mapcar (lambda (g) (list g))
-                                                     (cl-ppcre:split "\\n"
-                                                                     (sudo-run "find /etc/openvpn/ \\( -name \"*.conf\" -o -name \"*.ovpn\" \\) ")))
-                                             "Networks:"))))
-    (sudo-run (format nil "nohup openvpn /etc/openvpn/client/~a &" network))))
+  (when-let ((network (car
+                       (select-from-menu (current-screen)
+                                         (mapcar (lambda (g) (list g))
+                                                 (cl-ppcre:split "\\n"
+                                                                 (sudo-run "find /etc/openvpn/ \\( -name \"*.conf\" -o -name \"*.ovpn\" \\) ")))
+                                         "Networks:"))))
+    (sudo-run (format nil "nohup openvpn ~a &" network))))
 
-(defcommand kill-vpn (p) (:y-or-n "Kill VPN?")
+(defcommand kill-vpn (p) ( (:y-or-n "Kill VPN?"))
   (if p
       (if-let ((vpn (cl-ppcre:scan-to-strings "openvpn" (sudo-run "ps"))))
         (sudo-run (format nil "pkill ~a" vpn))

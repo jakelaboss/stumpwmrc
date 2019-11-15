@@ -218,10 +218,12 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Font ::
-(in-package :stumpwm)
+;; (in-package :stumpwm)
 (stumpwm:load-module "ttf-fonts")
 ;; (set-font (make-instance 'xft:font :family "Anonymous Pro" :subfamily "Regular" :size 13))
 ;; (set-font (make-instance 'xft:font :family "Noto Mono" :subfamily "Regular" :size 13))
+
+;; Error: Keep Noto Fonts package below 2019-02
 (set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
 
 
