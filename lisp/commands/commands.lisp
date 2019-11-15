@@ -16,7 +16,7 @@
 ;; (swank-loader:init)
 
 (ql:quickload :swank-client)
-;; For the not so lazy
+
 (defcommand swank () ()
   (swank:create-server :port 4008 :style swank:*communication-style*
                        :dont-close t)
@@ -29,35 +29,34 @@
   (echo-string (current-screen)
                "Starting swank on port 4006."))
 
-;; (defun test-list (&rest data)
-;;   (mapcan #'(lambda (y) `(,(loop for x from 0 to (length y) collect x) ,y)) data))
-
-
 (defparameter *desktop-swank* nil)
 
 (defcommand desktop-connect () ()
-  ;; (defparameter *desktop-swank* (swank-client:slime-connect "localhost" 4007 (setf *desktop-swank* nil))))
-  (defparameter *desktop-swank* (swank-client:slime-connect "10.10.10.225" 4006 (setf *desktop-swank* nil))))
-
-;; (defcommand
-    ;; [swank:create-server :port 4006 :style swank:*communication-style*)
+  (defparameter *desktop-swank*
+    (swank-client:slime-connect "10.10.10.225" 4006 (setf *desktop-swank* nil))))
 
 (add-hook *selection-notify-hook* 'clipboard-history::save-clipboard-history)
 
-(defparameter clipboard-history::*clipboard-poll-timeout* 30)
-
 (setf *print-length* 100)
 
+(defparameter clipboard-history::*clipboard-poll-timeout* 30)
+
+(import '(clipboard-history::*clipboard-poll-timeout*
+          clipboard-history::*clipboard-timer*
+          clipboard-history:start-clipboard-manager
+          clipboard-history::poll-selection
+        clipboard-history::*clipboard-history*
+        clipboard-history::*clipboard-poll-timeout*))
 
 (defun eval-current-selection ()
-  (let ((timeout clipboard-history::*clipboard-poll-timeout*))
-    (when (setf clipboard-history::*clipboard-poll-timeout* 0)
-      (if (null clipboard-history::*clipboard-timer*)
-          (clipboard-history:start-clipboard-manager))
+  (let ((timeout *clipboard-poll-timeout*))
+    (when (setf *clipboard-poll-timeout* 0)
+      (if (null *clipboard-timer*)
+          (start-clipboard-manager))
       (progn
-        (map nil #'clipboard-history::poll-selection '(:clipboard :primary))
-        (let ((result (eval (read-from-string (print (car clipboard-history::*clipboard-history*))))))
-          (setf clipboard-history::*clipboard-poll-timeout* timeout)
+        (map nil #'poll-selection '(:clipboard :primary))
+        (let ((result (eval (read-from-string (print (car *clipboard-history*))))))
+          (setf *clipboard-poll-timeout* timeout)
           result)))))
 
 (defcommand eval-from-clipboard () ()
