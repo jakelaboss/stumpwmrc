@@ -4,15 +4,25 @@
 
 (defvar *iw-scan*)
 
+(defun subseq-from-end (sequence end)
+  (reverse (subseq (reverse sequence) end)))
+
+(defvar *network-interface*
+  (subseq-from-end
+  (cl-ppcre:scan-to-strings
+   "wl.+:" (inferior-shell:run/ss "ip addr | grep wl"))
+  1))
+
+
 (defparameter *network-hash-table* (make-hash-table :test #'equal))
 
-(defvar *stumpwm-netctl* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/networks-files/")
+(defparameter *stumpwm-netctl* "/home/jake/common-lisp/stumpwmrc/storage/network-files/")
 
 ;; Create password data type
 (define-stumpwm-type :password (input prompt)
   (let ((history *input-history*)
-      (arg (argument-pop input))
-      (fn (symbol-function 'draw-input-bucket)))
+        (arg (argument-pop input))
+        (fn (symbol-function 'draw-input-bucket)))
     (unless arg
       (unwind-protect
            (setf (symbol-function 'draw-input-bucket)
@@ -34,7 +44,6 @@
           t nil)
       (error "Interface must be a string")))
 
-
 ;; Prompt for network
 (defun select-network-from-menu (screen)
   (labels ((ssid (x)
@@ -44,13 +53,14 @@
              (cl-ppcre:regex-replace-all " " (ssid x)
                                          "_")))
     (let* ((hs (make-hash-table :test #'equal))
-           (scan (sudo-run "iw dev wlp3s0 scan"))
+           (scan (sudo-run (format nil "iw dev ~a scan" *network-interface*)))
            (networks (remove nil (cl-ppcre:split "BSS" scan)))
            (net-string (remove nil (mapcar #'profile networks))))
       (setf *iw-scan* scan)
       (mapcar (lambda (x)
-                (setf (gethash (profile x) ;; (cl-ppcre:regex-replace-all "\\tSSID: "
-                               ;;                                     (cl-ppcre:scan-to-strings "\\tSSID: \\S+.*" x) "")
+                (setf (gethash (profile x)
+                               ;; (cl-ppcre:regex-replace-all "\\tSSID: "
+                               ;; (cl-ppcre:scan-to-strings "\\tSSID: \\S+.*" x) "")
                                hs)
                       (cons (ssid x)
                             (if (cl-ppcre:scan "RSN" x) t nil))))
@@ -65,6 +75,9 @@
   (cl-ppcre:regex-replace-all " "
                               (cl-ppcre:regex-replace-all "-" network-name "_")
                               "_"))
+
+;; For this to work we add a new directory in netctl called lisp
+;; We then update wireless-open and wirelss-wpa with a corrected interface name
 
 ;; add to known-networks needs to real name
 ;; Creates two commands, *wireless-wpa* and *wireless-open*, which prompts for a password
@@ -110,9 +123,6 @@
                             (sleep 3)
                             (if (sudo-run (concat "netctl start " netctl-name))
                                 (sudo-run (concat "netctl switch-to " netctl-name)))))
-                 ;; (progn (run-commands "*wireless-open*")
-                 ;; (sleep 3) (sudo-run (concat "netctl start " network))
-                 ;; (sleep 3) (sudo-run (concat "netctl switch-to " network))))
                  nil))
         ;; Main event
         (if (run *network-entry-p*)
@@ -136,23 +146,15 @@
                   (if (null (cl-ppcre:scan-to-strings (format-network-name network) known-list))
                       (add-to-known-networks network)
                       (sudo-run (format nil "netctl switch-to ~a" (format-network-name network))))))
-         (if (net-status "wlp3s0")
+         (if (net-status *network-interface*)
              (let* ((network (select-network-from-menu (current-screen)))
                     (known-networks (sudo-run "netctl list")))
                (if network (net (car network) known-networks)))
-             (progn (sudo-run "ip link set wlp3s0 up")
+             (progn (sudo-run (format nil "ip link set ~a up" *network-interface*))
                     (let* ((network (select-network-from-menu (current-screen)))
                            (known-networks (sudo-run "netctl list")))
-                      (sudo-run "ip link set wlp3s0 down")
+                      (sudo-run (format nil "ip link set ~a down" *network-interface*))
                       (if network (net (car network) known-networks))))))))
-
-      ;;   (if (null (cl-ppcre:scan-to-strings network known-networks))
-      ;;       (add-to-known-networks network)
-      ;;       (sudo-run (format nil "netctl switch-to ~a" network))))
-
-      ;; (progn (sudo-run "ip link set wlp3s0 up")
-      ;;        (let* ((network (car (select-network-from-menu (current-screen))))
-      ;;               (known-networks (sudo-run "netctl list")))
 
 (defcommand remove-network () (:rest)
   (when-let* ((known-networks (cl-ppcre:split "\\n"
@@ -164,8 +166,7 @@
     (stumpwm:run-commands (format nil "remove-network-p ~a" network))))
 
 (defcommand remove-network-p (network p) ((:string) (:y-or-n "Remove This Network? "))
-  (if p
-      (sudo-run (format nil "rm /etc/netctl/~a" network))
+  (if p (sudo-run (format nil "rm /etc/netctl/~a" network))
       nil))
 
 ; --- VPN ----------------------------------------

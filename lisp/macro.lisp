@@ -136,7 +136,9 @@ Be aware that these commands won't require a prefix to run."
                              (subseq (reverse (subseq (reverse (cl-ppcre:scan-to-strings "\".+\"" x)) 1)) 1))))
                    `((make-key :keysym ,key) ,(format nil "push-keycode ~a" key))))
                (check-file-for-keys
-                (read-file-into-string "/home/vagabond/quicklisp/dists/quicklisp/software/stumpwm-20181018-git/keysyms.lisp")
+                ;; Old config
+                ;; (read-file-into-string "/home/jake/quicklisp/dists/quicklisp/software/stumpwm-20181018-git/keysyms.lisp")
+                (read-file-into-string "/home/jake/Downloads/stumpwm/keysyms.lisp")
                 0))
 
      ;; letters on the keyboard
@@ -162,11 +164,90 @@ Be aware that these commands won't require a prefix to run."
 
 (def-interactive-keymap)
 
+(defcommand keyboard-interactive-reset () ()
+  (def-interactive-keymap))
+
+#| TODO
+
+1. create interactive keymap to save macro commands
+1a. Keymap should allow for nesting if there is a keymap already defined.
+It should also check if a sequence is already taken.
+
+2. Create system to save a restore macros? This should probably be done with sosei but can likely just be done by writing to the file system
+
+3. Restore macros on write
+|#
+
+(defun store-command (filename)
+  (let ((file (cat "~/common-lisp/stumpwmrc/storage/lisp/" filename)))
+    (if (directory file) (error "command already exists")
+        (with-open-file (s file :direction :output)
+          (write *keybindings-commands* :stream s)))))
+
+(defcommand restore-command (filename) ((:string filename))
+  (play-commands
+   (reverse (read-from-string
+             (read-file-into-string
+              (cat "~/common-lisp/stumpwmrc/storage/lisp/" filename))))))
+
+;; TODO memoize restore-command
+;; (memoize restore-command)
+
+(defun define-macro-command (map key-seq command-name)
+  (store-command command-name)
+  (define-key map key-seq (format nil "restore-command ~a" command-name)))
+
+(defun detect-sequence (key-seq map)
+  (find key-seq
+        (kmap-bindings map)
+        :test 'equalp
+        :key (lambda (x)
+               (binding-key x))))
+
+;; So if the detected sequence command is also a map then ask go to the next item?
+;; If we don't have multiple
+;; Support two different inputs
+;; 1. "s-m o" ;; can be a keymap and then an input
+;; 2. "s-l" ;; or just a standard input/key-sequence
+
+;; Let's make sure we check if it's not either of those,
+;; or if it's something already bound
+;; or if it's something that just shouldn't be reasonably bound
+(defcommand save-current-macro (key-seq name)
+    ((:string "Input key-seq: ") (:string "What is this command called?: "))
+  (labels ((parse-key-seqs (seq)
+             (mapcar #'(lambda (x) (car (parse-key-seq x)))
+                     (cl-ppcre:split " " seq))))
+    (let* ((key-seq (print (parse-key-seqs key-seq)))
+           (first-seq (detect-sequence (car key-seq) *top-map*))
+           (binding (if first-seq
+                        (eval (binding-command first-seq)))))
+      ;; Okay so what am I checking first
+      ;; if the first seq is a binding and has 2 parts cont
+      ;; if the first seq is a binding but has only one part we should error
+      ;; if the first-seq is not a binding but there are two parts we should error
+      ;; if the first seq is not a binding and has only one part we are good
+      (cond ((and (cdr key-seq) binding)
+             (if (kmap-p binding)
+                 ;; So this is to detect if our new sequence already has a binding
+                 ;; this is where we actually define the key
+                 (if (detect-sequence (cadr key-seq) binding)
+                     (define-macro-command binding (cadr key-seq) name)
+                     (define-macro-command binding (cadr key-seq) name))))
+            ((and (null (cdr key-seq)) (null binding))
+             ;; Let's check this for sanity
+             ;; does the key-seq have resonable meta-tags?
+             (if (key-mods-p (car key-seq))
+                 (define-macro-command *top-map* (car key-seq) (print name))))))))
+
+(define-key *top-map* (kbd "s-\\") "save-current-macro")
+
 (defcommand end-macro-def () ()
   (if (member 'key-recorder-fn *key-press-hook* :test 'equal)
-      (progn (remove-hook *key-press-hook* 'key-recorder-fn)
-             (pop *keybindings-commands*)
-             (removef *keybindings-commands* "replay-macros"  :test 'equal)))
+      (progn
+        (remove-hook *key-press-hook* 'key-recorder-fn)
+        (pop *keybindings-commands*)
+        (removef *keybindings-commands* "replay-macros"  :test 'equal)))
   (exit-interactive-keymap 'macro-keymap))
 
 ;; Key definitions

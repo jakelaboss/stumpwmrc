@@ -17,27 +17,27 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Applications ;;
 (defvar *application-bindings*
-   (let ((m (stumpwm:make-sparse-keymap)))
-     ;; (stumpwm:define-key m (stumpwm:kbd "e") "gnext")
-     (stumpwm:define-key m (stumpwm:kbd "e") "exec sh -c 'emacsclient -c .'")
-     ;; (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
-     (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c 'primusrun emacs'")
-     (stumpwm:define-key m (stumpwm:kbd "a") "exec arandr")
-     (stumpwm:define-key m (stumpwm:kbd "v") "exec pavucontrol-qt")
-     (stumpwm:define-key m (stumpwm:kbd "u") "exec urxvt")
-     (stumpwm:define-key m (stumpwm:kbd "s") "exec rofi -show ssh")
-     (stumpwm:define-key m (stumpwm:kbd "S") "exec steam")
-     (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
-     (stumpwm:define-key m (stumpwm:kbd "k") "exec keypass")
-     (stumpwm:define-key m (stumpwm:kbd "p") "exec plover")
-     (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show drun")
-     (stumpwm:define-key m (stumpwm:kbd "f") "exec firefox-developer-edition")
-     (stumpwm:define-key m (stumpwm:kbd "F") "exec primusrun firefox-developer-edition")
-     (stumpwm:define-key m (stumpwm:kbd "XF86AudioPlay") "exec spotify")
-     (stumpwm:define-key m (stumpwm:kbd "g") "exec google-chrome-beta")
+   (let ((m (make-sparse-keymap)))
+     ;; (define-key m (kbd "e") "gnext")
+     (define-key m (kbd "e") "exec sh -c 'emacsclient -c .'")
+     ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
+     (define-key m (kbd "E") "exec sh -c 'emacs'")
+     (define-key m (kbd "a") "exec arandr")
+     (define-key m (kbd "v") "exec pavucontrol-qt")
+     (define-key m (kbd "u") "exec urxvt")
+     (define-key m (kbd "s") "exec rofi -show ssh")
+     (define-key m (kbd "S") "exec slack")
+     (define-key m (kbd "F2") "exec conky")
+     (define-key m (kbd "k") "exec keypass")
+     (define-key m (kbd "p") "exec plover")
+     (define-key m (kbd "r") "exec rofi -show drun")
+     (define-key m (kbd "f") "exec firefox-developer-edition")
+     (define-key m (kbd "F") "exec chromium")
+     (define-key m (kbd "XF86AudioPlay") "exec spotify")
+     (define-key m (kbd "g") "exec google-chrome-beta")
      m ; NOTE: this is important
      ))
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-a") '*application-bindings*)
+(define-key *top-map* (kbd "s-a") '*application-bindings*)
 
 (defcommand pavucontrol () ()
   (if (run-commands "exec pavucontrol-qt")
@@ -48,68 +48,69 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Group Configuration ;;
 (defvar *group-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    ;; (stumpwm:define-key m (stumpwm:kbd "l") "gnext")
-    (stumpwm:define-key m (stumpwm:kbd "l") "gnext-swank")
-    (stumpwm:define-key m (stumpwm:kbd "s-l") "gnext-swank")
-    ;; (stumpwm:define-key m (stumpwm:kbd "h") "gprev")
-    (stumpwm:define-key m (stumpwm:kbd "s-h") "gprev-swank")
-    (stumpwm:define-key m (stumpwm:kbd "h") "gprev-swank")
-    (stumpwm:define-key m (stumpwm:kbd "L") "gnext-with-window")
-    (stumpwm:define-key m (stumpwm:kbd "H") "gprev-with-window")
-    (stumpwm:define-key m (stumpwm:kbd "m") "gmove")
-    (stumpwm:define-key m (stumpwm:kbd "w") "grouplist")
-    (stumpwm:define-key m (stumpwm:kbd "n") "gnew")
-    (stumpwm:define-key m (stumpwm:kbd "N") "gnew-float")
-    (stumpwm:define-key m (stumpwm:kbd "q") "gkill")
-    (stumpwm:define-key m (stumpwm:kbd "r") "grename")
-    (stumpwm:define-key m (stumpwm:kbd "k") "screen-next")
-    (stumpwm:define-key m (stumpwm:kbd "j") "screen-prev")
-    (stumpwm:define-key m (stumpwm:kbd "s") "snew")
-    (stumpwm:define-key m (stumpwm:kbd "W") "screen-select")
+  (let ((m (make-sparse-keymap)))
+    ;; (define-key m (kbd "l") "gnext")
+    (define-key m (kbd "l") "gnext-swank")
+    (define-key m (kbd "s-l") "gnext-swank")
+    ;; (define-key m (kbd "h") "gprev")
+    (define-key m (kbd "s-h") "gprev-swank")
+    (define-key m (kbd "h") "gprev-swank")
+    (define-key m (kbd "L") "gnext-with-window")
+    (define-key m (kbd "H") "gprev-with-window")
+    (define-key m (kbd "m") "gmove")
+    (define-key m (kbd "w") "grouplist")
+    (define-key m (kbd "n") "gnew")
+    (define-key m (kbd "N") "gnew-float")
+    (define-key m (kbd "q") "gkill")
+    (define-key m (kbd "r") "grename")
+    (define-key m (kbd "k") "screen-next")
+    (define-key m (kbd "j") "screen-prev")
+    (define-key m (kbd "s") "snew")
+    (define-key m (kbd "W") "screen-select")
     m ; NOTE: this is important
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-g") '*group-bindings*)
+(define-key *top-map* (kbd "s-g") '*group-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Frame Configuration
 (defvar *frame-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
-    (stumpwm:define-key m (stumpwm:kbd "w") "windowlist")
-    (stumpwm:define-key m (stumpwm:kbd "W") "all-windowlist")
-    (stumpwm:define-key m (stumpwm:kbd "e") "browser-menu")
-    (stumpwm:define-key m (stumpwm:kbd "E") "browser-history")
-    (stumpwm:define-key m (stumpwm:kbd "R") "title")
-    (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
-    (stumpwm:define-key m (stumpwm:kbd "c") "center-frame")
-    (stumpwm:define-key m (stumpwm:kbd "m") "mode-line")
-    (stumpwm:define-key m (stumpwm:kbd "g") "gaps")
-    (stumpwm:define-key m (stumpwm:kbd "f") "fullscreen")
-    (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
-    (stumpwm:define-key m (stumpwm:kbd "L") "reset-backlight")
-    (stumpwm:define-key m (stumpwm:kbd "n") "net-scan")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "r") "iresize")
+    (define-key m (kbd "w") "windowlist")
+    (define-key m (kbd "W") "all-windowlist")
+    (define-key m (kbd "e") "browser-menu")
+    (define-key m (kbd "E") "browser-history")
+    (define-key m (kbd "R") "title")
+    (define-key m (kbd "b") "balance-frames")
+    (define-key m (kbd "c") "center-frame")
+    (define-key m (kbd "m") "mode-line")
+    (define-key m (kbd "g") "gaps")
+    (define-key m (kbd "f") "fullscreen")
+    (define-key m (kbd "l") "set-backlight")
+    (define-key m (kbd "L") "reset-backlight")
+    (define-key m (kbd "n") "net-scan")
     m ; NOTE: this is important
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-f") '*frame-bindings*)
+(define-key *top-map* (kbd "s-f") '*frame-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Appearance Configuration
 
 (defvar *wallpaper-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "o") "set-to-orange")
-    (stumpwm:define-key m (stumpwm:kbd "g") "set-to-green")
-    (stumpwm:define-key m (stumpwm:kbd "G") "set-to-grass")
-    (stumpwm:define-key m (stumpwm:kbd "m") "set-to-mountains")
-    (stumpwm:define-key m (stumpwm:kbd "p") "set-to-purple-mountains")
-    (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "o") "set-to-orange")
+    (define-key m (kbd "g") "set-to-green")
+    (define-key m (kbd "G") "set-to-grass")
+    (define-key m (kbd "m") "set-to-mountains")
+    (define-key m (kbd "p") "set-to-purple-mountains")
+    (define-key m (kbd "w") "set-to-work")
+    (define-key m (kbd "l") "set-backlight")
     m ; NOTE: this is important
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-w") '*wallpaper-bindings*)
+(define-key *top-map* (kbd "s-w") '*wallpaper-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
@@ -118,98 +119,101 @@
 
 ;; Common Lisp Mode
 (defvar *common-lisp-mode-repl*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "c") "swank")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "c") "swank")
     m
     ))
 
 (defvar *common-lisp-mode*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "s") '*common-lisp-mode-repl*)
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "s") '*common-lisp-mode-repl*)
     m
     ))
 
-(stumpwm:define-key *common-lisp-mode* (stumpwm:kbd "e") '*common-lisp-mode-repl*)
-(stumpwm:undefine-key *top-map* (stumpwm:kbd "s"))
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-m") '*common-lisp-mode*)
+(define-key *common-lisp-mode* (kbd "e")
+  '*common-lisp-mode-repl*)
+
+(undefine-key *top-map* (kbd "s"))
+
+(define-key *top-map* (kbd "s-m") '*common-lisp-mode*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Emacs Commands ;;
 (defvar *emacs-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "e") "eshell")
-    m
-    ))
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "e") "eshell")
+    m))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-e") '*emacs-bindings*)
+(define-key *top-map* (kbd "s-e") '*emacs-bindings*)
 
 ;; ------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Audio Config ;;
 
 (define-interactive-keymap (audio-control tile-group) ()
-  ((stumpwm:kbd "-") "dec-volume")
-  ((stumpwm:kbd "+") "inc-volume")
-  ((stumpwm:kbd "r") "reset-audio"))
+  ((kbd "-") "dec-volume")
+  ((kbd "+") "inc-volume")
+  ((kbd "r") "reset-audio"))
 
 (define-key *top-map* (kbd "s-o") "audio-control")
+
 ;; ------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Mode Line Commands
 ;; (defvar *mode-line-bindings*
-;;   (let ((m (stumpwm:make-sparse-keymap)))
-;;     (stumpwm:define-key m (stumpwm:kbd "R") "title")
-;;     (stumpwm:define-key m (stumpwm:kbd "b") "balance-frames")
+;;   (let ((m (make-sparse-keymap)))
+;;     (define-key m (kbd "R") "title")
+;;     (define-key m (kbd "b") "balance-frames")
 ;;     m ; NOTE: this is important
 ;;     ))
-;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-") '*mode-line-bindings*)
+;; (define-key *top-map* (kbd "s-") '*mode-line-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Database Commands ;;
 
 (defvar *database-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "p") '*postgres-bindings*)
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "p") '*postgres-bindings*)
     m
     ))
 
 (defvar *postgres-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "s") "pg-start")
-    (stumpwm:define-key m (stumpwm:kbd "q") "pg-stop")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "s") "pg-start")
+    (define-key m (kbd "q") "pg-stop")
     m
     ))
 
-;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
-;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-d") '*database-bindings*)
+;; (define-key *top-map* (kbd "s-d") '*database-bindings*)
+;; (define-key *top-map* (kbd "s-d") '*database-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Quit Bindings ;;
 
 (defvar *quit-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "q") "kill")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "q") "kill")
     m
     ))
 
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-q") '*quit-bindings*)
+(define-key *top-map* (kbd "s-q") '*quit-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Toggle Bindings
 
 (defvar *toggle-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "g") "toggle-golden-ratio-command")
-    (stumpwm:define-key m (stumpwm:kbd "p") "plover-toggle")
-    (stumpwm:define-key m (stumpwm:kbd "r") "resize-popup")
-    (stumpwm:define-key m (stumpwm:kbd "G") "toggle-golden-ratio-toplevel")
-    (stumpwm:define-key m (stumpwm:kbd "h") "move-with-ratio left")
-    (stumpwm:define-key m (stumpwm:kbd "j") "move-with-ratio down")
-    (stumpwm:define-key m (stumpwm:kbd "k") "move-with-ratio up")
-    (stumpwm:define-key m (stumpwm:kbd "l") "move-with-ratio right")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "g") "toggle-golden-ratio-command")
+    (define-key m (kbd "p") "plover-toggle")
+    (define-key m (kbd "r") "resize-popup")
+    (define-key m (kbd "G") "toggle-golden-ratio-toplevel")
+    (define-key m (kbd "h") "move-with-ratio left")
+    (define-key m (kbd "j") "move-with-ratio down")
+    (define-key m (kbd "k") "move-with-ratio up")
+    (define-key m (kbd "l") "move-with-ratio right")
     m
     ))
 
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-t") '*toggle-bindings*)
+(define-key *top-map* (kbd "s-t") '*toggle-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
@@ -217,59 +221,59 @@
 (defcommand toggle-golden-ratio-toplevel () ()
   (if (null *golden-ratio-toplevel*)
       (progn
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-with-ratio left")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-with-ratio down")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-with-ratio up")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-with-ratio right")
+        (define-key *top-map* (kbd "s-h") "move-with-ratio left")
+        (define-key *top-map* (kbd "s-j") "move-with-ratio down")
+        (define-key *top-map* (kbd "s-k") "move-with-ratio up")
+        (define-key *top-map* (kbd "s-l") "move-with-ratio right")
         (setf *golden-ratio-toplevel* t))
       (progn
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-focus down")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-focus left")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
-        (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-focus right")
+        (define-key *top-map* (kbd "s-j") "move-focus down")
+        (define-key *top-map* (kbd "s-h") "move-focus left")
+        (define-key *top-map* (kbd "s-k") "move-focus up")
+        (define-key *top-map* (kbd "s-l") "move-focus right")
         (setf *golden-ratio-toplevel* nil))))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Rofi Bindings
 (defvar *rofi-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show run")
-    (stumpwm:define-key m (stumpwm:kbd "w") "exec rofi -show window")
-    (stumpwm:define-key m (stumpwm:kbd "s") "exec rofi -show ssh")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "r") "exec rofi -show run")
+    (define-key m (kbd "w") "exec rofi -show window")
+    (define-key m (kbd "s") "exec rofi -show ssh")
     m
     ))
 
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-u") '*rofi-bindings*)
+(define-key *top-map* (kbd "s-u") '*rofi-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Setup Remote Swank Connection
 
 ;; (defvar *remote-bindings*
-;;   (let ((m (stumpwm:make-sparse-keymap)))
-;;     (stumpwm:define-key m (stumpwm:kbd "s-c") "")
-;;     (stumpwm:define-key m (stumpwm:kbd "j") "move-focus down")
-;;     (stumpwm:define-key m (stumpwm:kbd "h") "move-focus left")
-;;     (stumpwm:define-key m (stumpwm:kbd "k") "move-focus up")
-;;     (stumpwm:define-key m (stumpwm:kbd "l") "move-focus right")
-;;     (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
-;;     (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
-;;     (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
-;;     (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+;;   (let ((m (make-sparse-keymap)))
+;;     (define-key m (kbd "s-c") "")
+;;     (define-key m (kbd "j") "move-focus down")
+;;     (define-key m (kbd "h") "move-focus left")
+;;     (define-key m (kbd "k") "move-focus up")
+;;     (define-key m (kbd "l") "move-focus right")
+;;     (define-key m (kbd "J") "move-window down")
+;;     (define-key m (kbd "H") "move-window left")
+;;     (define-key m (kbd "K") "move-window up")
+;;     (define-key m (kbd "L") "move-window right")
 ;;     ;; move window
-;;     (stumpwm:define-key m (stumpwm:kbd "J") "move-window down")
-;;     (stumpwm:define-key m (stumpwm:kbd "H") "move-window left")
-;;     (stumpwm:define-key m (stumpwm:kbd "K") "move-window up")
-;;     (stumpwm:define-key m (stumpwm:kbd "L") "move-window right")
+;;     (define-key m (kbd "J") "move-window down")
+;;     (define-key m (kbd "H") "move-window left")
+;;     (define-key m (kbd "K") "move-window up")
+;;     (define-key m (kbd "L") "move-window right")
 ;;     ;; Splits WIndows and Frames
-;;     (stumpwm:define-key m (stumpwm:kbd "v") "hsplit")
-;;     (stumpwm:define-key m (stumpwm:kbd "s") "vsplit")
-;;     (stumpwm:define-key m (stumpwm:kbd "r") "remove")
-;;     (stumpwm:define-key m (stumpwm:kbd "q") "kill")
-;;     (stumpwm:define-key m (stumpwm:kbd "-")"fclear")
-;;     (stumpwm:define-key m (stumpwm:kbd "n") "pull-hidden-next")
-;;     (stumpwm:define-key m (stumpwm:kbd "p") "pull-hidden-previous")
+;;     (define-key m (kbd "v") "hsplit")
+;;     (define-key m (kbd "s") "vsplit")
+;;     (define-key m (kbd "r") "remove")
+;;     (define-key m (kbd "q") "kill")
+;;     (define-key m (kbd "-")"fclear")
+;;     (define-key m (kbd "n") "pull-hidden-next")
+;;     (define-key m (kbd "p") "pull-hidden-previous")
 ;;     m
 ;;     ))
 

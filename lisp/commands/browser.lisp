@@ -6,7 +6,7 @@
   `(let (x)
      (mapcar (lambda (x) ,function) ,list)))
 
-(defvar *session-file* "/home/vagabond/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
+(defvar *session-file* "/home/jake/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
 (defvar *menu-max-length* 20)
 
 (defun subseq-from-end (sequence end)

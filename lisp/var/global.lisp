@@ -1,13 +1,14 @@
 ;; Global Variables
 (in-package :stumpwm)
-(ql:quickload '(:hyperluminal-mem :lparallel :sosei))
+;; (ql:quickload '(:hyperluminal-mem :lparallel :sosei))
 
-(defvar *pg-data* "/var/lib/postgres/data")
+;; (defvar *pg-data* "/var/lib/postgres/data")
 (defvar *useless-gaps-size* 10)
 (defvar *useless-gaps-on* nil)
 (defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
+(defvar *stumpwm-storage* "~/common-lisp/stumpwmrc/storage/")
 
-(setf sosei::*sosei-dir* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/")
+;; (setf sosei::*sosei-dir* "/home/jake/common-lisp/libraries/linux/stumpwm/storage/")
 
 ;; Mode Line Variables
 (setf *mode-line-timeout* 1)
@@ -22,10 +23,12 @@
 
 ;; (export stumpwm::password)
 
+(defun open-key-file (filename)
+  (read-file-into-string (concat *stumpwm-storage* "keys/" filename)))
 
-(defvar *lisp-key* (sosei::pread* "keys/key"))
-(defvar *salt* (sosei:pread* "keys/salt"))
-(defvar *lisp-password* (sosei:pread* "keys/password"))
-(defvar *root-password* (sosei:pread* "keys/root"))
+(defparameter *lisp-key* (open-key-file "lisp-key"))
 
-(defvar *transient-border-width* 2)
+(defvar *salt-length* 21)
+
+(defparameter *lisp-password* (open-key-file "password"))
+(defparameter *root-password* (open-key-file "password"))

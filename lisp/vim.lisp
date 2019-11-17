@@ -6,8 +6,8 @@
 ;; Movement Mapping ;;
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-j") "move-focus down")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-h") "move-focus left")
-;; (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
-(stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus-up")
+(stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus up")
+;; (stumpwm:define-key *top-map* (stumpwm:kbd "s-k") "move-focus-up")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-l") "move-focus right")
 
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-J") "move-window down")

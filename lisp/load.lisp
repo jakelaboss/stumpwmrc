@@ -8,11 +8,7 @@
 
 (in-package :stumpwm)
 
-(load "/home/vagabond/quicklisp/setup.lisp")
-;; (load "/home/vagabond/quicklisp/dists/quicklisp/software/closer-mop-20170830-git/closer-mop.asd")
-;; (load "/home/vagabond/quicklisp/dists/quicklisp/software/inferior-shell-20160929-git/inferior-shell.asd")
-;; (load "/home/vagabond/quicklisp/dists/quicklisp/software/usocket-0.7.0.1/usocket.asd")
-;; (ql:update-all-dists)
+(load "/home/jake/quicklisp/setup.lisp")
 
 ;; Sometimes theres some junk in the config
 (asdf:clear-configuration)
@@ -44,13 +40,13 @@
 ;; Clear out the gc
 (sb-ext:gc)
 
-(mapcar #'load-module '(
-                        "stumptray"
-                        "clipboard-history"
-                        ;; "swm-gaps"
-                        "cpu"
-                        "mem"
-                        ))
+;; (mapcar #'load-module '(
+;;                         ;; "stumptray"
+;;                         ;; "clipboard-history"
+;;                         ;; "swm-gaps"
+;;                         ;; "cpu"
+;;                         ;; "mem"
+;;                         ))
 
 
 

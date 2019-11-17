@@ -21,8 +21,8 @@
                   (inferior-shell:run/s "ps aux"))
    t nil))
 
-(defparameter *wallpapers-4k* "/home/vagabond/libraries/wallpapers/4k/")
-(defparameter *wallpapers-desktop* "/home/vagabond/libraries/wallpapers/desktop/")
+(defparameter *wallpapers-4k* "/home/jake/libraries/wallpapers/4k/")
+(defparameter *wallpapers-desktop* "/home/jake/libraries/wallpapers/desktop/")
 (defparameter *mountains* (concatenate 'string *wallpapers-4k* "mountains/"))
 (defparameter *galaxy* (concatenate 'string *wallpapers-4k* "galaxy/"))
 (defparameter *abstract* (concatenate 'string *wallpapers-4k* "abstract"))
@@ -31,12 +31,12 @@
 (defparameter *neo* (concat *wallpapers-desktop* "abstract/"))
 
 
-(setf current-set '(stumpwm:run-shell-command (concatenate 'string "feh --bg-scale "
-                                               ;; *green* "BM2vtfz.jpg " ; Blue
-                                               *green* "7162209cbe40aeeba705870210e5eb7d.jpg " ; Forest
-                                               *green* "RePIDAe.jpg " ; Pond
-                                               *green* "hnBvq40.jpg " ; Cascades
-                                               )))
+;; (setf current-set '(stumpwm:run-shell-command (concatenate 'string "feh --bg-scale "
+;;                                                ;; *green* "BM2vtfz.jpg " ; Blue
+;;                                                *green* "7162209cbe40aeeba705870210e5eb7d.jpg " ; Forest
+;;                                                *green* "RePIDAe.jpg " ; Pond
+;;                                                *green* "hnBvq40.jpg " ; Cascades
+;;                                                )))
 
 
 
@@ -46,6 +46,12 @@
                  ,@(mapcan #'(lambda (x) (if (stringp x) (list x "\" ")
                                              (list "\"" x)))
                            pic-list))))
+
+
+(defcommand set-to-work () ()
+  (stumpwm:run-shell-command "feh --bg-fill ~/Downloads/ChfasKD.jpg ~/Downloads/Kd6MY6P.jpg")
+  (defparameter *mode-line-foreground-color* "darkcyan")
+  (stumpwm:set-focus-color *mode-line-foreground-color*))
 
 ;; (ql:quickload :parse-number)
 
@@ -151,7 +157,7 @@
 
 ;; (set-to-green)
 ;; (set-to-orange)
-(set-to-mountains)
+;; (set-to-mountains)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Frame Configuration
@@ -219,10 +225,12 @@
 
 ;; Font ::
 (in-package :stumpwm)
-(stumpwm:load-module "ttf-fonts")
+;; (stumpwm:load-module "ttf-fonts")
+;; (set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
+
 ;; (set-font (make-instance 'xft:font :family "Anonymous Pro" :subfamily "Regular" :size 13))
 ;; (set-font (make-instance 'xft:font :family "Noto Mono" :subfamily "Regular" :size 13))
-(set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
+
 
 
 ;; (set-font "-misc-dejavu sans condensed-medium-o-semicondensed--0-0-0-0-p-0-ascii-0")
