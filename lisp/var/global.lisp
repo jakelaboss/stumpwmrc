@@ -32,3 +32,8 @@
 
 (defparameter *lisp-password* (open-key-file "password"))
 (defparameter *root-password* (open-key-file "password"))
+
+(defmacro defhash (name)
+  `(defparameter ,name (make-hash-table :test 'equal)))
+
+(defhash workspace-hash)

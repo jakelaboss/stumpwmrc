@@ -224,9 +224,17 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Font ::
+(ql:quickload :ttf-fonts)
+(ql:quickload :clx-truetype)
 (in-package :stumpwm)
 ;; (stumpwm:load-module "ttf-fonts")
 ;; (set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
+
+
+;; (xft:cache-fonts) ;; use this to update fonts table
+;; (print (xft:get-font-families)) ;; use this to find font family
+(set-font (make-instance 'xft:font :family "SauceCodePro Nerd Font Mono" :subfamily "Regular" :size 13))
+
 
 ;; (set-font (make-instance 'xft:font :family "Anonymous Pro" :subfamily "Regular" :size 13))
 ;; (set-font (make-instance 'xft:font :family "Noto Mono" :subfamily "Regular" :size 13))
@@ -252,8 +260,6 @@
 ;; (font-exists-p "9x15")
 ;; (xlib:font-p "Noto Sans Regular")
 
-;; (font-exists-p  "NotoSans-Regular")
-;; (ql:quickload :clx-truetype)
 ;; (clx-truetype:*font-dirs*)
 ;; (clx-truetype:get-font-families)
 ;; (clx-truetype:cache-fonts)

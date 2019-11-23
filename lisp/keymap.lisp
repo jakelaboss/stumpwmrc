@@ -63,14 +63,36 @@
     (define-key m (kbd "N") "gnew-float")
     (define-key m (kbd "q") "gkill")
     (define-key m (kbd "r") "grename")
-    (define-key m (kbd "k") "screen-next")
-    (define-key m (kbd "j") "screen-prev")
-    (define-key m (kbd "s") "snew")
-    (define-key m (kbd "W") "screen-select")
+    (define-key m (kbd "R") "ws-rename")
+    (define-key m (kbd "k") "ws-next")
+    (define-key m (kbd "j") "ws-prev")
+    (define-key m (kbd "s") "ws-new")
+    (define-key m (kbd "W") "ws-select")
     m ; NOTE: this is important
     ))
 
 (define-key *top-map* (kbd "s-g") '*group-bindings*)
+
+(define-interactive-keymap (group-interactive-keymap tile-group) ()
+  ((kbd "l") "gnext-swank")
+  ((kbd "s-l") "gnext-swank")
+  ((kbd "s-h") "gprev-swank")
+  ((kbd "h") "gprev-swank")
+  ((kbd "L") "gnext-with-window")
+  ((kbd "H") "gprev-with-window")
+  ((kbd "m") "gmove")
+  ((kbd "w") "grouplist")
+  ((kbd "n") "gnew")
+  ((kbd "N") "gnew-float")
+  ((kbd "q") "gkill")
+  ((kbd "r") "grename")
+  ((kbd "R") "ws-rename")
+  ((kbd "k") "ws-next")
+  ((kbd "j") "ws-prev")
+  ((kbd "s") "ws-new")
+  ((kbd "W") "ws-select"))
+
+(define-key *group-bindings* (kbd "g") "group-interactive-keymap")
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Frame Configuration

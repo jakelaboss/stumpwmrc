@@ -31,7 +31,7 @@
 
 ;; Web jump Macro
 (defmacro make-web-jump (name prefix)
-  `(defcommand ,(intern name) (sevagabond) ((:rest ,(concatenate 'string name " sevagabond: ")))
+  `(defcommand ,(intern name) (sevagabond) ((:rest ,(concatenate 'string name " vagabond: ")))
     (substitute #\+ #\Space sevagabond)
     (run-shell-command (concatenate 'string ,prefix sevagabond))))
 

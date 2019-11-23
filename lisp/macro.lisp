@@ -164,8 +164,6 @@ Be aware that these commands won't require a prefix to run."
 
 (def-interactive-keymap)
 
-(defcommand keyboard-interactive-reset () ()
-  (def-interactive-keymap))
 
 #| TODO
 
@@ -192,6 +190,11 @@ It should also check if a sequence is already taken.
 
 ;; TODO memoize restore-command
 ;; (memoize restore-command)
+
+(ql:quickload :fare-memoization)
+(use-package :fare-memoization)
+
+(memoize 'restore-command)
 
 (defun define-macro-command (map key-seq command-name)
   (store-command command-name)
@@ -254,6 +257,13 @@ It should also check if a sequence is already taken.
 (define-key *top-map* (kbd "s-(") "macro-keymap")
 (define-key *top-map* (kbd "s-)") "end-macro-def")
 (define-key *top-map* (kbd "s-'")  "replay-macros")
+
+
+(defcommand keyboard-interactive-reset () ()
+  (define-key *top-map* (kbd "s-(") "macro-keymap")
+  (define-key *top-map* (kbd "s-)") "end-macro-def")
+  (define-key *top-map* (kbd "s-'")  "replay-macros")
+  (def-interactive-keymap))
 
 (def-interactive-keymap)
 
