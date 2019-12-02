@@ -7,6 +7,7 @@
      (mapcar (lambda (x) ,function) ,list)))
 
 (defvar *session-file* "/home/vagabond/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
+
 (defvar *menu-max-length* 20)
 
 (defun subseq-from-end (sequence end)
@@ -32,17 +33,16 @@
                     (all-windows))))
 
 (defun browser-session-check (session)
-  ;; (mapcar #'(lambda (window)
-              (let ((tabs (mapcar #'(lambda (tab)
-                          (if (> (length tab) 30)
-                              (subseq tab 0 30)
-                              ;; we do this check because the current method for menu limits doesn't work
-                              tab))
-                                session)))
-                (if (> (length tabs) *menu-max-length*)
-                    (subseq tabs 0 *menu-max-length*)
-                    ;; we do this check because the current method for menu limits doesn't work
-                    tabs)))
+  (let ((tabs (mapcar #'(lambda (tab)
+                        (if (> (length tab) 30)
+                            (subseq tab 0 30)
+                            ;; we do this check because the current method for menu limits doesn't work
+                            tab))
+                    session)))
+    (if (> (length tabs) *menu-max-length*)
+        (subseq tabs 0 *menu-max-length*)
+        ;; we do this check because the current method for menu limits doesn't work
+        tabs)))
 
 
 ;; Really just a re-implementation of run-menu with a length check
@@ -76,12 +76,28 @@
                                     ;; string check, only show up to menu-max-length
                                     (browser-session-check strings)
                                     highlight))
-               (multiple-value-bind (action key-seq) (read-from-keymap (menu-keymap menu))
-                 (if action
-                     (progn (funcall action menu)
-                            (bound-check-menu menu))
-                     (typing-action menu (first key-seq)))))))
+                (multiple-value-bind (action key-seq) (read-from-keymap (menu-keymap menu))
+                  (if action
+                      (progn (funcall action menu)
+                             (bound-check-menu menu))
+                      (typing-action menu (first key-seq)))))))
       (unmap-all-message-windows))))
+
+
+;; (defun switch-to-tab (tab-name)
+;;   (if (cl-ppcre:scan "Firefox" (window-name (current-window)))
+;;       (progn (when (push-key "T")
+;;                ;; (sleep 2)
+;;                (map nil #'(lambda (x)
+;;                           (push-key (format nil "~a" x)))
+;;                     tab-name))))
+
+;; (map nil #'(lambda (x) (push-key (format nil "~a" x)))
+;;      "file-list")
+
+;; (defcommand switch-tab (tab-name) ((:string "enter tab: "))
+;;   (switch-to-tab tab-name))
+
 
 (defcommand browser-menu () ()
   (unwind-protect
