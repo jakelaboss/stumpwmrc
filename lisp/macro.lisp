@@ -20,10 +20,6 @@
 (defcommand push-meta-key (key) ((:string key))
   (send-fake-key (current-window) (parse-key key)))
 
-
-  ;; (defcommand push-key (x) ((:string x))
-  ;;   (send-fake-key (current-window) (parse-key x)))
-
 (defcommand push-space () ()
   (send-fake-key (current-window) (make-key :keysym 32)))
 
@@ -164,6 +160,8 @@ Be aware that these commands won't require a prefix to run."
 
 (def-interactive-keymap)
 
+(defcommand keyboard-interactive-reset () ()
+  (def-interactive-keymap))
 
 #| TODO
 

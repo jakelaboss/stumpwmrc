@@ -4,13 +4,12 @@
 (dolist (m '(
              ;; modeline
              "cpu"
-            "mem"
+             "mem"
              "hostname"
              "net"
              ;; util
-             "app-menu"
-            ))
-    (stumpwm:load-module m))
+             "app-menu"))
+  (stumpwm:load-module m))
 
 
 (stumpwm:load-module "ttf-fonts")

@@ -47,6 +47,7 @@
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Group Configuration ;;
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 (defvar *group-bindings*
   (let ((m (make-sparse-keymap)))
     ;; (define-key m (kbd "l") "gnext")
@@ -59,6 +60,7 @@
     (define-key m (kbd "H") "gprev-with-window")
     (define-key m (kbd "m") "gmove")
     (define-key m (kbd "w") "grouplist")
+    (define-key m (kbd "W") "grouplist-all")
     (define-key m (kbd "n") "gnew")
     (define-key m (kbd "N") "gnew-float")
     (define-key m (kbd "q") "gkill")
@@ -67,7 +69,7 @@
     (define-key m (kbd "k") "ws-next")
     (define-key m (kbd "j") "ws-prev")
     (define-key m (kbd "s") "ws-new")
-    (define-key m (kbd "W") "ws-select")
+    (define-key m (kbd "S") "ws-select")
     m ; NOTE: this is important
     ))
 
