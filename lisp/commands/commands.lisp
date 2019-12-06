@@ -30,6 +30,7 @@
   (echo-string (current-screen)
                "Starting swank on port 4006."))
 
+
 ;; (defun test-list (&rest data)
 ;;   (mapcan #'(lambda (y) `(,(loop for x from 0 to (length y) collect x) ,y)) data))
 
@@ -171,6 +172,16 @@
 
 ; --- Group Commands ----------------------------------------
 ;; Redefine group commands
+
+;; TODO redefine move-to-window
+;; (window-scr)
+;; (select-window "lisp")
+;; (window)
+
+;; (raise-window (lastcar (group-windows (current-group))))
+;; (focus-window (lastcar (group-windows (lastcar (screen-groups (current-screen))))))
+
+
 
 (defun move-all-windows-to-group (&optional (group (next-group (current-group))))
   (move-windows-to-group (list-windows (current-group)) group))
@@ -373,7 +384,7 @@ window along."
           "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a%-" 5)))))
 
 (defcommand reset-audio () ()
-  (run-shell-command "bash /home/vagabond/libraries/builds/zenbook-pro-ux501vw-sound-fix/fix-audio.sh"))
+  (run-shell-command "bash /home/jake/libraries/builds/zenbook-pro-ux501vw-sound-fix/fix-audio.sh"))
 
 ;; ideas for restarting audio after suspend
 ;; $ pacmd list-cards

@@ -16,3 +16,5 @@
 
 (defcommand keyboard-reset () ()
   (reset-keyboard))
+
+(run-shell-command "libinput-gestures-setup start")
