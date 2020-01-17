@@ -64,29 +64,29 @@
       (setf (screen-groups cs)
             (remove g (screen-groups cs))))))
 
-(defun activate-ws (ws)
-  ;; Let's make sure you can only active if theres nothing currently active
-  (let ((active (slot-value *metaspace* :active-ws))
-        (meta-screen (slot-value *metaspace* :screen)))
-    (if (null active)
-        (progn
-          ;; First step is moving groups
-          (mapcar #'(lambda (x)
-                      (move-group-to-screen x meta-screen))
-                  (ws-groups ws))
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (ws-screen ws))
-          ;; Now we actually set the workspace to active
-          (setf (ws-active-p ws) t
-                (slot-value *metaspace* :active-ws) ws)
-          ;; (gmove (car (ws-groups ws)))
-          (gnext)))))
+;; (defun activate-ws (ws)
+;;   ;; Let's make sure you can only active if theres nothing currently active
+;;   (let ((active (slot-value *metaspace* :active-ws))
+;;         (meta-screen (slot-value *metaspace* :screen)))
+;;     (if (null active)
+;;         (progn
+;;           ;; First step is moving groups
+;;           (mapcar #'(lambda (x)
+;;                       (move-group-to-screen x meta-screen))
+;;                   (ws-groups ws))
+;;           (move-group-to-screen (slot-value *metaspace* :meta-group)
+;;                                 (ws-screen ws))
+;;           ;; Now we actually set the workspace to active
+;;           (setf (ws-active-p ws) t
+;;                 (slot-value *metaspace* :active-ws) ws)
+;;           ;; (gmove (car (ws-groups ws)))
+;;           (gnext)))))
 
 
 (defun activate-ws (ws)
   ;; Let's make sure you can only active if theres nothing currently active
   (let ((active (slot-value *metaspace* :active-ws))
-        (meta-screen (slot-value *metaspace* :screen)))
+      (meta-screen (slot-value *metaspace* :screen)))
     (if (null active)
         (progn
           ;; First step is moving groups
@@ -205,3 +205,11 @@
   "Rename the current workspace."
   (let ((ws (slot-value *metaspace* :active-ws)))
     (setf (ws-name ws) name)))
+
+
+;; This function is specific to laptops
+(defun reset-heads ()
+  (screen-heads (ws-screen (car (hash-table-values workspace-hash)))))
+
+;; (screen-heads (current-screen))
+

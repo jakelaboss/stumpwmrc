@@ -365,22 +365,34 @@
 
 (defun cpu-temp ()
   (with-open-file (s "/sys/class/hwmon/hwmon0/temp1_input")
-    (format nil "~a" (float (/ (read s) 1000)))))
+    (setf *cpu-temp* (format nil "~a" (float (/ (read s) 1000))))))
 
-(setf *screen-mode-line-format* (list " | "
-                                   '(#.:eval
-                                     (mode-time)
-                                     ) " | Battery: "
-                                   '(#.:eval  (car (mode-power))) ", "
-                                   '(#.:eval  (cdr (mode-power))) "%"
-                                   " | Brightness: "
-                                   '(#.:eval (get-backlight-percent)) "| Network Status: "
-                                   '(#.:eval (net-status "wlp3s0"))
-                                   "| | %c %f "
-                                   " | Temp: "
-                                   '(#.:eval (cpu-temp))
-                                   " | Group: %g | "
-                                   ;; "%W | "
-                                   ))
+(defvar *mode-loop* t)
+
+(defun mode-loop ()
+  (bt:make-thread
+   #'(lambda ()
+       (unwind-protect
+            (loop while *mode-loop*
+                  do (setf *screen-mode-line-format*
+                           (list " | "
+                              (unwind-protect (mode-time))
+                              " | Battery: "
+                              (unwind-protect (car (mode-power))) ", "
+                              (unwind-protect (cdr (mode-power))) "%"
+                              " | Brightness: "
+                              (unwind-protect (get-backlight-percent))
+                              ;; "| Network Status: "
+                              ;; '(#.:eval (unwind-protect (net-status "wlo1")))
+                              ;; "| | %c %f "
+                              " | Temp: "
+                              (unwind-protect (cpu-temp))
+                              " | Group: %g | "
+                              ;; "%W | "
+                              ))
+                     (sleep 10))))
+   :name "Mode Loop"))
+
+(defvar *mode-thread* (mode-loop))
 
  ;;------------------------------------------------------------------------------------------------------------------------ ;;

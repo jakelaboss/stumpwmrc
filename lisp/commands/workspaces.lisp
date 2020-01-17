@@ -58,13 +58,22 @@
 
 (defun move-group-to-screen (group screen)
   (let ((g group)
-        (cs (group-screen group)))
-    (progn
-      (setf (group-screen g) screen)
-      (setf (screen-groups screen)
-            (cons g (screen-groups screen)))
-      (setf (screen-groups cs)
-            (remove g (screen-groups cs))))))
+      (cs (group-screen group)))
+    (setf (group-screen g) screen
+          (screen-groups screen) (cons g (screen-groups screen))
+          (screen-groups cs) (remove g (screen-groups cs)))))
+
+(defun move-group-to-screen (group screen)
+  (let ((current-screen (group-screen group)))
+    ;; Set the group-screen to this group
+    (setf (group-screen group) screen)
+    ;; IMPORTANT: set the group to this screen
+    (setf (screen-groups screen) (cons group (screen-groups screen)))
+    ;; Now remove the group from the current screen
+    (removef (screen-groups current-screen) group)
+    ;; Noww return the screen-groups
+    ))
+
 
 (defun activate-ws (ws)
   ;; Let's make sure you can only active if theres nothing currently active
@@ -73,18 +82,19 @@
     (if (null active)
         (progn
           ;; First step is moving groups
-          (mapcar #'(lambda (x)
-                      (move-group-to-screen x meta-screen))
-                  (ws-groups ws))
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (ws-screen ws))
+          (if (mapcar #'(lambda (x)
+                          (move-group-to-screen x meta-screen))
+                      (ws-groups ws))
+              (move-group-to-screen (slot-value *metaspace* :meta-group)
+                                    (ws-screen ws)))
           ;; Now we actually set the workspace to active
           (setf (ws-active-p ws) t
                 (slot-value *metaspace* :active-ws) ws)
           ;; (gmove (car (ws-groups ws)))
           (gnext)))))
 
-
+;; Okay, so we're having an issue
+;; Not every group is getting moved correctly
 (defun activate-ws (ws)
   ;; Let's make sure you can only active if theres nothing currently active
   (let ((active (slot-value *metaspace* :active-ws))
@@ -92,11 +102,10 @@
     (if (null active)
         (progn
           ;; First step is moving groups
-          (mapcar #'(lambda (x)
-                      (move-group-to-screen x meta-screen))
-                  (ws-groups ws))
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (ws-screen ws))
+          (if (dolist (x (ws-groups ws))
+                (move-group-to-screen x meta-screen))
+              (move-group-to-screen (slot-value *metaspace* :meta-group)
+                                    (ws-screen ws)))
           ;; Now we actually set the workspace to active
           (setf (ws-active-p ws) t
                 (slot-value *metaspace* :active-ws) ws)
@@ -109,11 +118,12 @@
     (if active-ws
         (progn
           ;; First step is moving groups back
-          (mapcar #'(lambda (x) (move-group-to-screen x (ws-screen active-ws)))
-                  (screen-groups (slot-value *metaspace* :screen)))
-          ;; (ws-groups active-ws)) ;; This is empty
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (slot-value *metaspace* :screen))
+          (if (let ((sr (ws-screen active-ws)))
+                (mapcar #'(lambda (x) (move-group-to-screen x sr))
+                        (screen-groups (slot-value *metaspace* :screen))))
+              ;; (ws-groups active-ws)) ;; This is empty
+              (move-group-to-screen (slot-value *metaspace* :meta-group)
+                                    (slot-value *metaspace* :screen)))
           ;; Now we actually set the workspace to deactive
           (setf (ws-active-p active-ws) nil
                 (slot-value *metaspace* :active-ws) nil)))))
@@ -195,6 +205,10 @@
 (defcommand ws-init () ()
   (workspace-start))
 
+
+;; (meta-space-groups *metaspace*)
+;; (grouplist-all)
+
 (defcommand ws-next () ()
   (let* ((ws-array (print (sort (hash-table-alist workspace-hash) #'< :key 'car)))
          (current-ws-id (ws-number (slot-value *metaspace* :active-ws))) ;; check group-id
@@ -219,7 +233,6 @@
           (create-new-workspace name)
           (workspace-start))))
 
-
 (defcommand ws-next-with-window () ()
   (let* ((win (current-window)))
     (when (ws-next)
@@ -235,14 +248,16 @@
 
 (defcommand ws-select () ()
   (when-let ((ws (cdr (select-from-menu (current-screen)
-                                          (reverse (mapcar (lambda (g) (cons (format nil "~a:~a" (car g) (ws-name (cdr g))) (cdr g)))
-                                                           (hash-table-alist workspace-hash)))
-                                          "Workspaces: "))))
+                                        (reverse (mapcar (lambda (g)
+                                                           (cons (format nil "~a:~a" (car g) (ws-name (cdr g))) (cdr g)))
+                                                         (hash-table-alist workspace-hash)))
+                                        "Workspaces: "))))
     (switch-to-workspace ws)))
 
 (defcommand ws-rename (name) ((:string "New name for workspace: "))
   "Rename the current workspace."
-  (let ((ws (slot-value *metaspace* :active-ws)))
-    (setf (ws-name ws) name)))
+  (if (null name) (error "Not a valid name")
+      (let ((ws (slot-value *metaspace* :active-ws)))
+        (setf (ws-name ws) name))))
 
 

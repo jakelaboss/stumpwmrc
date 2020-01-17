@@ -2,7 +2,7 @@
 ;; Not working
 (in-package :stumpwm)
 
-(defun emacs-run (command)
+(defun emacs-eval (command)
   (inferior-shell:run/s
    (format nil "emacsclient -e \"~a\"" command)))
 
