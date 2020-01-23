@@ -12,204 +12,362 @@
 
 ;; I could also rename all groups not in the workspace to be hidden
 
-;; TODO Should I set the Screen-ID? Or the Screen Itself?
-;; Redefine group class to include original Screen ID
-;; (defclass group ()
-;;   ((screen :initarg :screen :accessor group-screen)
-;;    (windows :initform nil :accessor group-windows)
-;;    (screen-id :initform nil :accessor group-screen-id) ;; This is the original Screen ID. IT should be set once and not changed
-;;    (current-window :initform nil :accessor group-current-window)
-;;    (number :initarg :number :accessor group-number)
-;;    (name :initarg :name :accessor group-name)
-;;    (on-top-windows :initform nil :accessor group-on-top-windows)))
-
-;; Define the workspace class and initialization
-
 (in-package :stumpwm)
 
-(defclass workspace ()
-  ((id :initarg :number :accessor ws-number)
-   (name :initform "Default" :accessor ws-name)
-   (screen :initform nil :accessor ws-screen)
-   (active-p :initform nil :accessor ws-active-p)
-   (current-group :accessor ws-current-group)))
+(defhash *group-images*)
 
-(defgeneric ws-number (workspace))
-(defgeneric ws-name (workspace))
-(defgeneric ws-current-screen (workspace))
-(defgeneric ws-active-p (workspace))
-(defgeneric ws-current-group (workspace))
+(defvar *group-image-path* (concat *stumpwm-storage* "images/"))
 
-(defun ws-groups (ws)
-  (screen-groups (ws-screen ws)))
+;; (defvar image-mutex (sb-thread:make-mutex :name "image-hash"))
 
-;; Remove all groups from the metaspace
+;; (sb-thread:list-all-threads)
+;; (setf (sb-thread:mutex-value image-mutex)
 
-;; so we have to create a new workspace immeditely
-;; them make it our active space
+;; (honestly we don't want too much going on at any one time)
 
-(defstruct meta-space
-  (:groups (screen-groups (current-screen)))
-  (:screen (current-screen))
-  (:meta-group (car (screen-groups (current-screen))))
-  (:active-ws nil))
+;; (bt:make-thread
+ ;; #'(lambda ()
+     ;; (sb-thread:get-mutex (sb-thread:mu))))
 
-(defun move-group-to-screen (group screen)
-  (let ((g group)
-        (cs (group-screen group)))
-    (progn
-      (setf (group-screen g) screen)
-      (setf (screen-groups screen)
-            (cons g (screen-groups screen)))
-      (setf (screen-groups cs)
-            (remove g (screen-groups cs))))))
+(defmacro hash? (key hashtable value)
+  `(if (gethash ,key ,hashtable) nil
+       (setf (gethash ,key ,hashtable) ,value)))
 
-;; (defun activate-ws (ws)
-;;   ;; Let's make sure you can only active if theres nothing currently active
-;;   (let ((active (slot-value *metaspace* :active-ws))
-;;         (meta-screen (slot-value *metaspace* :screen)))
-;;     (if (null active)
-;;         (progn
-;;           ;; First step is moving groups
-;;           (mapcar #'(lambda (x)
-;;                       (move-group-to-screen x meta-screen))
-;;                   (ws-groups ws))
-;;           (move-group-to-screen (slot-value *metaspace* :meta-group)
-;;                                 (ws-screen ws))
-;;           ;; Now we actually set the workspace to active
-;;           (setf (ws-active-p ws) t
-;;                 (slot-value *metaspace* :active-ws) ws)
-;;           ;; (gmove (car (ws-groups ws)))
-;;           (gnext)))))
+(defmacro form (spec &rest items)
+  `(format nil ,spec ,@items))
 
+(defmacro alambda (parms &body body)
+  `(labels ((self ,parms ,@body))
+     #'self))
 
-(defun activate-ws (ws)
-  ;; Let's make sure you can only active if theres nothing currently active
-  (let ((active (slot-value *metaspace* :active-ws))
-      (meta-screen (slot-value *metaspace* :screen)))
-    (if (null active)
-        (progn
-          ;; First step is moving groups
-          (mapcar #'(lambda (x)
-                      (move-group-to-screen x meta-screen))
-                  (ws-groups ws))
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (ws-screen ws))
-          ;; Now we actually set the workspace to active
-          (setf (ws-active-p ws) t
-                (slot-value *metaspace* :active-ws) ws)
-          ;; (gmove (car (ws-groups ws)))
-          ))))
+(defun group-image-id (group)
+  (cons (ws-number (group-workspace group))
+        (group-number group)))
 
+(defun group-image-format (group)
+  (format nil "~aS~a:G~a.jpg" *group-image-path*
+          (ws-number (group-workspace group))
+          (group-number group)))
 
-(defun deactivate-ws ()
-  "Deactivates the current ws"
-  (let ((active-ws (slot-value *metaspace* :active-ws)))
-    (if active-ws
-        (progn
-          ;; First step is moving groups back
-          (mapcar #'(lambda (x) (move-group-to-screen x (ws-screen active-ws)))
-                  (screen-groups (slot-value *metaspace* :screen)))
-          ;; (ws-groups active-ws)) ;; This is empty
-          (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                (slot-value *metaspace* :screen))
-          ;; Now we actually set the workspace to deactive
-          (setf (ws-active-p active-ws) nil
-                (slot-value *metaspace* :active-ws) nil)))))
+(defun group-picture ()
+  (let ((id (group-image-id (current-group)))
+      (p (group-image-format (current-group))))
+    (setf (gethash id *group-images*)
+          (progn (run-shell-command
+                  (format nil "scrot -o -q 5 ~a" p))
+                 p))))
+
+(defun group-state (n)
+  (dump-to-file (dump-group (current-group))
+                (concat *group-image-path* "group-~ax~a" n)))
+
+(defun feh (&rest images)
+  (run-commands (format nil "exec sh -c 'feh -- ~{~a ~}'" images)))
+
+(defun workspace-groups (ws)
+  "This will always return the right value"
+             (if (eql ws (current-ws))
+                 (screen-groups (current-screen))
+                 (ws-groups ws)))
+
+(defun join-images-all ()
+  (labels ((find-groups (ws)
+             (if (eql ws (current-ws))
+                 (screen-groups (current-screen))
+                 (ws-groups ws)))
+           (ws-id (n)
+             (form "~aresults:S~a.jpg"
+                   *group-image-path* n)))
+    (when (dolist (ws (hash-table-values workspace-hash))
+            (run-shell-command
+             (form "convert ~aS~a*.jpg +append ~aresults:S~a.jpg"
+                   *group-image-path* (ws-number ws)
+                   *group-image-path* (ws-number ws)) t))
+      (run-shell-command
+       (form "convert -reverse ~aresults:S*.jpg -append ~aresults.jpg"
+             *group-image-path*
+             *group-image-path*)))))
 
 
-(defun init-workspace (screen name id)
-  (let ((ws (make-instance 'workspace)))
-    (setf (ws-number ws) id
-          (ws-screen ws) screen
-          (ws-name ws) name
-          (ws-current-group ws) 0
-          (gethash id workspace-hash) ws)))
+;; (join-images-all)
 
-(defun create-new-workspace (name)
-  (init-workspace (init-screen
-                   (car (xlib:display-roots *display*)) name "")
-                  name (find-free-number (hash-table-keys workspace-hash) 1)))
+;; (setf tree-test (copy-list (tile-group-frame-tree group)))))
 
-(defun workspace-start ()
-  (let ((ms (current-screen))
-        (ws (create-new-workspace "Default")))
-    (setf (group-name (car (screen-groups ms)))
-          (format nil "~a" (gensym "meta")))
-    (defparameter *metaspace* (make-meta-space))
-    (activate-ws ws)))
+;; (print tree-test)
 
-(defun switch-to-group-from-id (id group-list)
-  (switch-to-group
-   (car (sort group-list #'(lambda (x y)
-                             (< (abs (- (group-number x) id))
-                                (abs (- (group-number y) id))))))))
+(defun format-images (group)
+      (mapcar
+       #'(lambda (win frame)
+           (send-fake-key win (parse-key "RET"))
+           (pull-window win frame))
 
-(defun switch-to-workspace (ws)
+       (print (sort (copy-seq (head-windows group (car (group-heads group))))
+                    #'(lambda (x y) (if (< (window-number x) (window-number y)) t
+                                   (< (ws-number (window-workspace x))
+                                      (ws-number (window-workspace y)))))))
+
+       (print (sort (copy-seq (flat-list (tile-group-frame-tree group)))
+              #'(lambda (x y)
+                  (if (> (frame-y x) (frame-y y)) t
+                      (< (frame-x x) (frame-x y))))))))
+
+(defun display-images ()
+  (run-commands (print (format nil "exec feh -g 1280x720 -. -w -A \";\" --bg-color black ~aS*.jpg"
+                         *group-image-path*))))
+
+
+(defun feh-refresh ()
+  (inferior-shell:run/s (format
+                         nil "kill SIGUSR1 ~a"
+                         (inferior-shell:run/s "pidof feh")))
+  (run-shell-command "ps | grep feh -g"))
+
+
+(defun parse-image-name (image)
+  (let ((p (cl-ppcre:scan-to-strings "S.:G." image)))
+    (if p
+        (cons (parse-integer (subseq p 1 2))
+              (parse-integer (subseq p 4 5))))))
+
+
+(defun desktop-switch ()
   ;; Switch to group as long if it's not currently active
-  (let ((active-ws (slot-value *metaspace* :active-ws))
-        (id (group-number (current-group))))
-    (if (null (equal ws active-ws))
+  (let* ((win (current-window))
+         (p (if win (parse-image-name
+                     (window-name win))
+                nil)))
+
+    ;; To reload the image
+    (send-fake-key (current-window) (parse-key "RET"))
+    ;; So we are always adding the group to the current screen, so we
+    ;; should always deactivate. but let's check anyway
+    (if p
         (progn
-          (if active-ws
+          (if (current-ws)
               (deactivate-ws))
-          (activate-ws ws)
-          (switch-to-group-from-id id
-          (screen-groups (slot-value *metaspace* :screen)))))))
+          (activate-ws (gethash (car p) workspace-hash))
+          (let ((group-list (screen-groups (slot-value *metaspace* :screen))))
+            (switch-to-group-from-id (cdr p) group-list))))))
 
-(defun current-ws ()
-  (slot-value *metaspace* :active-ws))
+;; (parse-image-name (window-name (nth 1 (group-windows (current-group)))))
 
-;; (workspace-start)
-
-;; (hash-table-alist workspace-hash)
-
-;; Commands
-
-(defcommand ws-init () ()
-  (workspace-start))
-
-(defcommand ws-next () ()
-  (let* ((ws-array (print (sort (hash-table-alist workspace-hash) #'< :key 'car)))
-         (current-ws-id (ws-number (slot-value *metaspace* :active-ws))) ;; check group-id
-         (rest (member current-ws-id ws-array :key 'car)))
-    (if (null (cdr rest))
-        ;; use the first one.
-        (switch-to-workspace (cdar ws-array))
-        (switch-to-workspace (cdadr rest)))))
-
-(defcommand ws-prev () ()
-  (let* ((ws-array (print (sort (hash-table-alist workspace-hash) #'> :key 'car)))
-         (current-ws-id (ws-number (slot-value *metaspace* :active-ws)))
-         (rest (member current-ws-id ws-array :key 'car)))
-    (if (null (cdr rest))
-        ;; use the first one.
-        (switch-to-workspace (cdar ws-array))
-        (switch-to-workspace (cdadr rest)))))
-
-(defcommand ws-new (name) ((:string "Enter name for workspace: "))
-  (if (null name) (error "Not a valid name")
-      (if (hash-table-values workspace-hash)
-          (create-new-workspace name)
-          (workspace-start))))
+(define-interactive-keymap desktop-ws (:on-exit #'desktop-switch)
+  ;; Movement Mapping ;;
+  ((kbd "q") "gnext")
+  ((kbd "j") "move-focus down")
+  ((kbd "h") "move-focus left")
+  ((kbd "k") "move-focus up")
+  ((kbd "l") "move-focus right")
+  ((kbd ";") "colon")
+  ((kbd ":") "eval"))
 
 
-(defcommand ws-select () ()
-  (when-let ((ws (cdr (select-from-menu (current-screen)
-                                          (reverse (mapcar (lambda (g) (cons (format nil "~a:~a" (car g) (ws-name (cdr g))) (cdr g)))
-                                                           (hash-table-alist workspace-hash)))
-                                          "Workspaces: "))))
-    (switch-to-workspace ws)))
+(defun space-this (n)
+  (move-group-to-screen (slot-value *metaspace* :meta-group)
+                        (current-screen))
+  (switch-to-group (slot-value *metaspace* :meta-group))
 
-(defcommand ws-rename (name) ((:string "New name for workspace: "))
-  "Rename the current workspace."
-  (let ((ws (slot-value *metaspace* :active-ws)))
-    (setf (ws-name ws) name)))
+  (restore-from-file (concat *group-image-path*
+                             (form "group-~ax~a" n n)))
+
+  (if (group-windows (current-group))
+      (format-images (slot-value *metaspace* :meta-group))
+      ;; (refresh-images (slot-value *metaspace* :meta-group))
+        (display-images)))
+;; (sleep 10)
+
+;; (move-group-to-screen (slot-value *metaspace* :meta-group)
+;;                       (ws-screen (current-ws))))
+
+(defcommand display-ws () ()
+  (space-this 3)
+  (desktop-ws))
+
+(defcommand group-update-picture () ()
+    (group-picture))
+
+(define-key *group-bindings* (kbd "p") "group-update-picture")
+(define-key *group-bindings* (kbd "G") "display-ws")
+
+;; (if (switch-to-group (find-group (current-screen) ".metaspace"))
+;;     (restore-from-file (concat *group-image-path* (form "group-~ax~a" n n))))
+
+;; (dotimes (x n)
+;;   (run-commands "exec urxvt"
+;;                 "move-focus :right")))
 
 
-;; This function is specific to laptops
-(defun reset-heads ()
-  (screen-heads (ws-screen (car (hash-table-values workspace-hash)))))
+;; (defun query-image (screen-num group-num)
+;;     (gethash (cons screen-num group-num) *group-images*))
 
-;; (screen-heads (current-screen))
+;; (defun display-image ()
+;;   (let ((nums (mapcar #'(lambda (ws)
+;;                         (cons (car ws)
+;;                               (mapcar #'group-number (ws-groups (cdr ws)))))
+;;                     (hash-table-alist workspace-hash))))
+;;     (loop for y in (hash-table-alist workspace-hash)
+;;           collect (loop for g in (cdr y)
+;;                         ;; Set the
+;;                         collect
+;;                         (query-images)))))
 
+;; (feh (concat *group-image-path* "S1:G1.png"))
+
+
+;; (defun format-layout-for-images (workspaces)
+;;   ;; no, we do splits by number of screens, then by number of groups
+;;   ;; Okay this get's us the right frame splits, but let's go farther
+;;   (let ((workspaces (hash-table-values workspace-hash)))
+;;     (split-frame-eql-parts (current-group) :row (length workspaces))
+;;     (loop for ws in workspaces
+;;           do
+;;              ;; Set's our splits
+;;              (let ((len (if (eql (slot-value *metaspace* :active-ws) ws)
+;;                           (length (screen-groups (current-screen)))
+;;                           (length (ws-groups ws)))))
+;;                (split-frame-eql-parts (current-group) :column len)
+;;                ;; Honestly I think I should set the group images in here
+
+;;                ;; (dotimes (x len)
+;;                  ;; (run-commands "exec urxvt")
+;;                  ;; (move-focus :right))
+;;                (move-focus :down)))))
+
+
+;; (defun set-to-frames (workspaces))
+;; ;; New we'll grab something new
+;; (dotimes (x))
+
+;; (loop for x in (head-frames (current-group) (current-head))
+;;       for num unt)
+
+
+;; (gnew)
+;; (add-group (current-screen) ".metaspace")
+
+
+;; (defun float-display ()
+;;   (let ((win (cadr (group-windows (current-group)))))
+;;     (float-window  win (current-group))
+;;     (run-shell-command "urxvt -c ")
+;;     (unfloat-window win (current-group))
+;;     (kill-window win)
+
+
+;; (print *metaspace*)
+;; ((current-screen))
+
+;; (screen-current-msg-highlights (current-screen))
+
+;; (defun format-group-for-display (group)
+;;   ;; Let's set a limit
+;;   (if (group))
+;;   (let ((limit 20)
+;;       (form (format-expand *group-formatters* *group-format* group)))
+;;     (concat form (make-string (- 15 (length form)) :initial-element #\Space))))
+
+;; (grouplist)
+
+
+;; (defun grouplist-function-all ()
+;;   (labels ((group-names (grouplist)
+;;              (format nil "~a~%"
+;;                      (apply #'concat
+;;                             (mapcar #'(lambda (g)
+;;                                         (format-group-for-display g))
+;;                                     (sort (copy-seq grouplist) #'< :key #'group-number))))))
+
+;;   (let* ((ws-array (print (sort (hash-table-alist workspace-hash) #'> :key 'car)))
+;;          (current-ws-id (print (ws-number (slot-value *metaspace* :active-ws))))) ;; check group-id
+
+;;     (defvar *strings*
+;;      (mapcar
+;;       #'(lambda (x)
+;;           (if (eql (slot-value *metaspace* :active-ws) (cdr x))
+;;               (group-names (screen-groups (current-screen)))
+;;               (group-names (ws-groups (cdr x)))))
+;;       ws-array)))))
+
+;; (defcommand grouplist-all () ()
+;;   ;; We need to do character limits
+;;   (grouplist-function-all))
+
+;; (grouplist-all)
+
+;; (defun find-location-of-group
+;;     (let (
+;;         (g (current-group))
+;;         ()
+;;         )))
+
+;;       (ccontext-px )
+
+
+;; (multiple-value-bind (width height)
+;;     (rendered-size *strings* (screen-message-cc (current-screen)))
+;;   (setup-message-window (current-screen) width height)
+;;   (render-strings-groups (screen-message-cc (current-screen))
+;;                   *message-window-padding*
+;;                   *message-window-y-padding*
+;;                   *strings*
+;;                   '((2 10 20))))
+
+;; (defun render-strings-groups (cc padx pady strings highlights)
+;;     (let* ((gc (ccontext-gc cc))
+;;            (xwin (ccontext-win cc))
+;;            (px (ccontext-px cc))
+;;            (strings (mapcar (lambda (string)
+;;                               (if (stringp string)
+;;                                   (parse-color-string string)
+;;                                   string))
+;;                             strings))
+;;            (y 0))
+;;   ;; Create a new pixmap if there isn't one or if it doesn't match the
+;;       ;; window
+;;       (when (or (not px)
+;;                (/= (xlib:drawable-width px) (xlib:drawable-width xwin))
+;;                (/= (xlib:drawable-height px) (xlib:drawable-height xwin)))
+;;         (if px (xlib:free-pixmap px))
+;;         (setf px (xlib:create-pixmap :drawable xwin
+;;                                      :width (xlib:drawable-width xwin)
+;;                                      :height (xlib:drawable-height xwin)
+;;                                      :depth (xlib:drawable-depth xwin))
+;;               (ccontext-px cc) px))
+;;       ;; Clear the background
+;;       (xlib:with-gcontext (gc :foreground (xlib:gcontext-background gc))
+;;         (xlib:draw-rectangle px gc 0 0
+;;                              (xlib:drawable-width px)
+;;                              (xlib:drawable-height px) t))
+;;       (loop for parts in strings
+;;             for row from 0 to (length strings)
+;;             for line-height = (max-font-height parts cc)
+;;             if
+
+;;             (find row highlights :key 'car :test 'eql)
+;;             do
+;;                ;; (if (check eatch part, we might need to change that render strings function)
+;;                (render-string (subseq (car parts) 0 (cadr (find row highlights :key 'car :test 'eql)))
+;;                               cc (+ padx 0) (+ pady y))
+;;       (xlib:draw-rectangle px gc 0 (+ pady y) (xlib:drawable-width px) line-height t)
+
+;;                (xlib:with-gcontext (gc :foreground (xlib:gcontext-background gc)
+;;                                        :background (xlib:gcontext-foreground gc))
+;;                  ;; If we don't switch the default colors, a color operation
+;;                  ;; resetting either color to its default value would undo the
+;;                  ;; switch.
+;;                  (rotatef (ccontext-default-fg cc) (ccontext-default-bg cc))
+;;                  (render-string (subseq (car parts) (cadr (find row highlights :key 'car :test 'eql))
+;;                                         (caddr (find row highlights :key 'car :test 'eql)))
+;;                                 cc (+ padx 0) (+ pady y))
+;;                  (rotatef (ccontext-default-fg cc) (ccontext-default-bg cc)))
+;;                (render-string (subseq (car parts) (caddr (find row highlights :key 'car :test 'eql)))
+;;                               cc (+ padx 0) (+ pady y))
+;;             else
+;;               do (render-string parts cc (+ padx 0) (+ pady y))
+;;             end
+;;             do (incf y line-height))
+;;       (xlib:copy-area px gc 0 0
+;;                       (xlib:drawable-width px)
+;;                       (xlib:drawable-height px) xwin 0 0)
+;;       (reset-color-context cc)
+;;       (values)))
