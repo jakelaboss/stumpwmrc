@@ -99,7 +99,10 @@
   ((kbd "s") "ws-new")
   ((kbd "W") "ws-select"))
 
-(define-key *group-bindings* (kbd "g") "group-interactive-keymap")
+;; (define-key *group-bindings* (kbd "g") "group-interactive-keymap")
+(define-key *group-bindings* (kbd "p") "group-update-picture")
+(define-key *group-bindings* (kbd "G") "group-interactive-keymap")
+(define-key *group-bindings* (kbd "g") "display-ws")
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Frame Configuration

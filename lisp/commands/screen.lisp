@@ -54,7 +54,7 @@
       (p (group-image-format (current-group))))
     (setf (gethash id *group-images*)
           (progn (run-shell-command
-                  (format nil "scrot -o -q 5 ~a" p))
+                  (format nil "scrot -o -q 10 ~a" p))
                  p))))
 
 (defun group-state (n)
@@ -186,8 +186,6 @@
 (defcommand group-update-picture () ()
     (group-picture))
 
-(define-key *group-bindings* (kbd "p") "group-update-picture")
-(define-key *group-bindings* (kbd "G") "display-ws")
 
 ;; (if (switch-to-group (find-group (current-screen) ".metaspace"))
 ;;     (restore-from-file (concat *group-image-path* (form "group-~ax~a" n n))))
