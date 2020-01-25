@@ -68,7 +68,11 @@
     (define-key m (kbd "r") "grename")
     (define-key m (kbd "R") "ws-rename")
     (define-key m (kbd "k") "ws-next")
+    (define-key m (kbd "s-k") "ws-next")
+    (define-key m (kbd "K") "ws-next-with-window")
     (define-key m (kbd "j") "ws-prev")
+    (define-key m (kbd "s-j") "ws-prev")
+    (define-key m (kbd "J") "ws-prev-with-window")
     (define-key m (kbd "s") "ws-new")
     (define-key m (kbd "S") "ws-select")
     m ; NOTE: this is important

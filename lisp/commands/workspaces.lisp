@@ -103,7 +103,6 @@
           ;; (gmove (car (ws-groups ws)))
           ))))
 
-
 (defun deactivate-ws ()
   "Deactivates the current ws"
   (let ((active-ws (slot-value *metaspace* :active-ws)))
@@ -150,14 +149,16 @@
 (defun switch-to-workspace (ws)
   ;; Switch to group as long if it's not currently active
   (let ((active-ws (slot-value *metaspace* :active-ws))
-        (id (group-number (current-group))))
+      (id (group-number (current-group))))
     (if (null (equal ws active-ws))
         (progn
           (if active-ws
               (deactivate-ws))
           (activate-ws ws)
           (switch-to-group-from-id id
-          (screen-groups (slot-value *metaspace* :screen)))))))
+                                   (screen-groups (slot-value *metaspace* :screen)))))
+    ;; return active ws
+    (slot-value *metaspace* :active-ws)))
 
 (defun current-ws ()
   (slot-value *metaspace* :active-ws))
@@ -218,6 +219,17 @@
           (create-new-workspace name)
           (workspace-start))))
 
+
+(defcommand ws-next-with-window () ()
+  (let* ((win (current-window)))
+    (when (ws-next)
+      (move-window-to-group win (current-group)))))
+
+(defcommand ws-prev-with-window () ()
+  (let* ((win (current-window)))
+    (when (ws-prev)
+      (move-window-to-group win (current-group)))))
+
 (defcommand grouplist-all () ()
   (ws-groups-all))
 
@@ -232,3 +244,5 @@
   "Rename the current workspace."
   (let ((ws (slot-value *metaspace* :active-ws)))
     (setf (ws-name ws) name)))
+
+
