@@ -263,16 +263,14 @@ window along."
 (defcommand gnext-swank () ()
   (if *desktop-swank*
       (progn (group-forward-swank)
-             (if (gnext)
-              (format nil "~a" (group-name (current-group)))))
-      (if (gnext) (format nil "~a" (group-name (current-group))))))
+             (gnext))
+      (gnext)))
 
 (defcommand gprev-swank () ()
   (if *desktop-swank*
       (progn (group-backward-swank)
-             (if (gprev)
-                 (print (current-group))))
-      (if (gprev) (format nil "~a" (group-name (current-group))))))
+             (gprev))
+      (gprev)))
 
 (defcommand gnext-with-window-swank () ()
   (if *laptop-swank*

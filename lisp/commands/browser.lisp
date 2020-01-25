@@ -25,12 +25,23 @@
                                          (format nil"lz4jsoncat ~a | jq -r '.windows[].tabs | map(.entries[].title)'" *session-file*)) "],")
             1))))
 
+(defun all-workspace-windows ()
+  "All windows on all screens"
+  (remove nil (flat-list (copy-seq (amapcar (if (eql (current-ws) x)
+                                                (screen-windows (current-screen))
+                                                (screen-windows (ws-screen x)))
+                                            (hash-table-values workspace-hash))))))
+
 (defun current-windows ()
   "Get current browser window names and object"
   (remove nil (mapcar #'(lambda (x)
                         (let ((b (cl-ppcre:scan-to-strings ".+(?= - Firefox)" (window-name x))))
                           (if b (cons b x))))
-                    (all-windows))))
+                    (all-workspace-windows))))
+
+
+
+;; (current-windows)
 
 (defun browser-session-check (session)
   (let ((tabs (mapcar #'(lambda (tab)
@@ -103,12 +114,13 @@
   (unwind-protect
        (let* ((window (current-windows))
               (session (current-session))
-              (data (mapcar #'(lambda (y) ;; sorts session and windows into groups
-                                (list (car (remove nil (mapcar #'(lambda (x)
-                                                              (member (car y) x :test 'equal))
-                                                          session)))
-                                   (cdr y)))
-                            window))
+              (data (mapcar
+                     #'(lambda (y) ;; sorts session and windows into groups
+                         (list (car (remove nil (mapcar #'(lambda (x)
+                                                       (member (car y) x :test 'equal))
+                                                   session)))
+                            (cdr y)))
+                     window))
               ;; adds window to end of each tab
               (table (remove-duplicates (mapcan #'(lambda (x)
                                                     (mapcar #'(lambda (z)
