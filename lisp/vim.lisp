@@ -45,6 +45,10 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-i") "send-sudo-password")
 (stumpwm:define-key *top-map* (stumpwm:kbd "s-I") "send-root-password")
 
+(stumpwm:define-key *top-map* (stumpwm:kbd "F1") "mute-toggle")
+(stumpwm:define-key *top-map* (stumpwm:kbd "F2") "dec-volume")
+(stumpwm:define-key *top-map* (stumpwm:kbd "F3") "inc-volume")
+
 
 ;; (uiop:run-program "sudo mount -t ntfs-3g /dev/sd?n /where/to/mnt)
 

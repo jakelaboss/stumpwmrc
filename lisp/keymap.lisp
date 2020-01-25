@@ -104,6 +104,7 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Frame Configuration
 (defvar *frame-bindings*
+<<<<<<< variant A
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "r") "iresize")
     (stumpwm:define-key m (stumpwm:kbd "w") "windowlist")
@@ -119,6 +120,23 @@
     (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
     (stumpwm:define-key m (stumpwm:kbd "L") "reset-backlight")
     (stumpwm:define-key m (stumpwm:kbd "n") "net-scan")
+>>>>>>> variant B
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "r") "iresize")
+    (define-key m (kbd "w") "windowlist")
+    (define-key m (kbd "W") "all-windowlist")
+    (define-key m (kbd "e") "browser-menu")
+    (define-key m (kbd "E") "browser-history")
+    (define-key m (kbd "R") "title")
+    (define-key m (kbd "b") "balance-frames")
+    (define-key m (kbd "c") "toggle-center-frame")
+    (define-key m (kbd "m") "mode-line")
+    (define-key m (kbd "g") "gaps")
+    (define-key m (kbd "f") "fullscreen")
+    (define-key m (kbd "l") "set-backlight")
+    (define-key m (kbd "L") "reset-backlight")
+    (define-key m (kbd "n") "net-scan")
+======= end
     m ; NOTE: this is important
     ))
 

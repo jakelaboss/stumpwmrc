@@ -263,14 +263,16 @@ window along."
 (defcommand gnext-swank () ()
   (if *desktop-swank*
       (progn (group-forward-swank)
-             (gnext))
-      (gnext)))
+             (if (gnext)
+              (format nil "~a" (group-name (current-group)))))
+      (if (gnext) (format nil "~a" (group-name (current-group))))))
 
 (defcommand gprev-swank () ()
   (if *desktop-swank*
       (progn (group-backward-swank)
-             (gprev))
-      (gprev)))
+             (if (gprev)
+                 (print (current-group))))
+      (if (gprev) (format nil "~a" (group-name (current-group))))))
 
 (defcommand gnext-with-window-swank () ()
   (if *laptop-swank*
@@ -345,14 +347,23 @@ window along."
 
 (defcommand inc-volume () ()
   (print (cl-ppcre:scan-to-strings
-          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a%+" 5)))))
+          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a+" 5)))))
 
 (defcommand dec-volume () ()
   (print (cl-ppcre:scan-to-strings
-          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a%-" 5)))))
+          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a-" 5)))))
 
 (defcommand reset-audio () ()
   (run-shell-command "bash /home/vagabond/libraries/builds/zenbook-pro-ux501vw-sound-fix/fix-audio.sh"))
+
+(defcommand mute-toggle () ()
+  (let ((get (cl-ppcre:scan-to-strings "\\[on\\]"
+                                     (inferior-shell:run/s "amixer sget Master"))))
+    (if get (progn (inferior-shell:run/s "amixer sset Master mute") "Sound Muted")
+        (progn (mapcar (lambda (x)
+                         (inferior-shell:run/s (format nil "amixer sset ~a unmute " x)))
+                       '("Master" "Speaker"))
+               "Sound Unmuted"))))
 
 ;; ideas for restarting audio after suspend
 ;; $ pacmd list-cards
@@ -375,18 +386,92 @@ window along."
 ;; (defcommand plover-toggle () ()
 ;;   (run-shell-command "xdotool key e r f v o l " ))
 
+
+; --- Xdotools----------------------------------------
+
+(defun xdotool (keyseq)
+  (inferior-shell:run/s (format nil "xdotool key ~a" keyseq)))
+
 ; --- Layout ----------------------------------------
 
-;; TODO make an actual layout system
-;; Man, This is super ugly
-(defcommand center-frame () ()
-  (progn (hsplit) (hsplit)
-         (balance-frames) (move-window :right)
-         (move-focus :left) (hsplit)
-         (remove-split) (fclear)
-         (move-focus :right) (move-focus :right)
-         (hsplit) (remove-split)
-         (fclear) (move-focus :left)))
+(defun current-frame ()
+  (window-frame (current-window)))
+
+(defun window-width-inc (window)
+  "Find out what is the correct step to change window width"
+  (let ((h (window-normal-hints window)))
+    (if h
+       (or (xlib:wm-size-hints-width-inc h) 1)
+       1)))
+
+(defun window-height-inc (window)
+  "Find out what is the correct step to change window height"
+  (let ((w (window-normal-hints window)))
+    (if w
+        (or (xlib:wm-size-hints-height-inc w)
+           1)
+        1)))
+
+(defun head-redisplay ()
+  "Redisplay all windows in a head"
+  (mapcar
+   #'(lambda (window)
+       (when window
+         (with-slots (width height frame) window
+           (set-window-geometry window
+                                :width (- width (window-width-inc window))
+                                :height (- height (window-height-inc window)))
+           ;; make sure the first one goes through before sending the second
+           (xlib:display-finish-output *display*)
+           (set-window-geometry window
+                                :width (+ width
+                                          (* (window-width-inc window)
+                                             (floor (- (frame-width frame) width)
+                                                    (window-width-inc window))))
+                                :height (+ height
+                                           (* (window-height-inc window)
+                                              (floor (- (frame-height frame) height)
+                                                     (window-height-inc window)))))
+           (maximize-window window))))
+   (head-windows (current-group) (current-head))))
+
+(defun center-frame (&optional (scale 1))
+  "Toggle centering the frame in a head"
+  (let* ((frames (head-frames (current-group) (current-head)))
+         (head-width (head-width (current-head)))
+         (centered-width (* 2 (round (* scale head-width) 4)))
+         (margin (+ (head-x (current-head))
+                    (/ (- (head-width (current-head))
+                          centered-width) 2))))
+    ;; now we need that number on both sides
+    ;; Let's make the frame width half the max * golden ratio
+    (if (> (length frames) 1) "Cannot center multiple frames"
+        (progn
+          (if (> (frame-x (car frames))
+                 (head-x (current-head)))
+              (setf (frame-x (car frames)) (head-x (current-head))
+                    (frame-width (car frames)) head-width)
+              (setf (frame-x (car frames)) margin
+                    (frame-width (car frames)) centered-width))
+          (head-redisplay)))))
+
+
+(defvar *center-scale* 1)
+
+(defcommand change-center-scale (scale) ((:number "Scale: "))
+  (if (and (> scale 0) (< scale 2))
+      (setf *center-scale* scale)))
+
+(defcommand toggle-center-frame () ()
+  (center-frame *center-scale*))
+
+
+;; (defcommand interpret-swipe ()
+;;     (if (cl-ppcre:scan "firefox"
+;;                        (window-name (current-window)))
+;;         (xdotool "ctrl+Tab") ;; so win
+;;         (emacs-run "evil-win-right")
+;;     )
 
 ; --- Export ----------------------------------------
 ;; TODO export useful commands/functions
