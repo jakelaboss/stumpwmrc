@@ -21,6 +21,7 @@
 (defvar *golden-ratio-toplevel* nil)
 
 ;; (export stumpwm::password)
+(defvar *stumpwm-storage* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/")
 
 
 (defvar *lisp-key* (sosei::pread* "keys/key"))
