@@ -76,9 +76,9 @@
 ;; (defvar *salt-length* (length (decrypt *salt* *lisp-key*)))
 
 (defun sudo-password ()
-  (subseq-from-end (decrypt (parse-integer *lisp-password*) *lisp-key*) *salt-length*))
+  (remove-from-end (decrypt (parse-integer *lisp-password*) *lisp-key*) *salt-length*))
 
-;; (defun root-password () (subseq-from-end (decrypt *root-password* *lisp-key*) *salt-length*))
+;; (defun root-password () (remove-from-end (decrypt *root-password* *lisp-key*) *salt-length*))
 
 ;; (defun check-password (pass)
 ;;   (equalp *lisp-password*

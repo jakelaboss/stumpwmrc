@@ -239,6 +239,7 @@ for the screen on the ws"
               if (eql screen (ws-screen (cdr ws)))
                 return (cdr ws)))))
 
+
 (defun group-workspace (group)
   (let ((active-ws (slot-value *metaspace* :active-ws)))
     (if (member group (screen-groups (current-screen)) :test 'eql)

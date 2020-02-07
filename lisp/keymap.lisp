@@ -17,27 +17,26 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Applications ;;
 (defvar *application-bindings*
-   (let ((m (make-sparse-keymap)))
-     ;; (define-key m (kbd "e") "gnext")
-     (define-key m (kbd "e") "exec sh -c 'emacsclient -e \"(new-frame)\"'")
-     ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
-     (define-key m (kbd "E") "exec sh -c 'emacs'")
-     ;; (define-key m (kbd "E") "exec sh -c 'emacs -nw --daemon'")
-     (define-key m (kbd "a") "exec arandr")
-     (define-key m (kbd "v") "exec pavucontrol-qt")
-     (define-key m (kbd "u") "exec urxvt")
-     (define-key m (kbd "s") "exec rofi -show ssh")
-     (define-key m (kbd "S") "exec slack")
-     (define-key m (kbd "F2") "exec conky")
-     (define-key m (kbd "k") "exec keypass")
-     (define-key m (kbd "p") "exec plover")
-     (define-key m (kbd "r") "exec rofi -show drun")
-     (define-key m (kbd "f") "exec firefox-developer-edition")
-     (define-key m (kbd "F") "exec chromium")
-     (define-key m (kbd "XF86AudioPlay") "exec spotify")
-     (define-key m (kbd "g") "exec google-chrome-beta")
-     m ; NOTE: this is important
-     ))
+  (let ((m (make-sparse-keymap)))
+    ;; (define-key m (kbd "e") "gnext")
+    (define-key m (kbd "e") "exec sh -c 'emacsclient -e \"(new-frame)\"'")
+    ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
+    (define-key m (kbd "E") "exec sh -c 'emacs'")
+    ;; (define-key m (kbd "E") "exec sh -c 'emacs -nw --daemon'")
+    (define-key m (kbd "a") "exec arandr")
+    (define-key m (kbd "v") "exec pavucontrol-qt")
+    (define-key m (kbd "u") "exec urxvt")
+    (define-key m (kbd "s") "exec rofi -show ssh")
+    (define-key m (kbd "S") "exec slack")
+    (define-key m (kbd "F2") "exec conky")
+    (define-key m (kbd "k") "exec keypass")
+    (define-key m (kbd "p") "exec plover")
+    (define-key m (kbd "r") "exec rofi -show drun")
+    (define-key m (kbd "f") "exec firefox-developer-edition")
+    (define-key m (kbd "F") "exec chromium")
+    (define-key m (kbd "XF86AudioPlay") "exec spotify")
+    (define-key m (kbd "g") "exec google-chrome-beta")
+    m))
 (define-key *top-map* (kbd "s-a") '*application-bindings*)
 
 (defcommand pavucontrol () ()
@@ -101,6 +100,7 @@
 
 ;; (define-key *group-bindings* (kbd "g") "group-interactive-keymap")
 (define-key *group-bindings* (kbd "p") "group-update-picture")
+(define-key *group-bindings* (kbd "s-p") "group-update-picture")
 (define-key *group-bindings* (kbd "G") "group-interactive-keymap")
 (define-key *group-bindings* (kbd "g") "display-ws")
 
@@ -122,6 +122,7 @@
     (define-key m (kbd "l") "set-backlight")
     (define-key m (kbd "L") "reset-backlight")
     (define-key m (kbd "n") "net-scan")
+    (define-key m (kbd "N") "vpn-toggle")
     m ; NOTE: this is important
     ))
 

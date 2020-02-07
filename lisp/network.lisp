@@ -4,11 +4,11 @@
 
 (defvar *iw-scan*)
 
-(defun subseq-from-end (sequence end)
+(defun remove-from-end (sequence end)
   (reverse (subseq (reverse sequence) end)))
 
 (defvar *network-interface*
-  (subseq-from-end
+  (remove-from-end
   (cl-ppcre:scan-to-strings
    "wl.+:" (inferior-shell:run/ss "ip addr | grep wl"))
   1))
@@ -172,23 +172,27 @@
 ; --- VPN ----------------------------------------
 ;; TODO create a VPN interface
 
-(defun vpn (conf)
-  (format nil (concatenate 'string
-                         "openvpn /etc/openvpn/client"
-                         (concatenate 'string conf ".conf"))))
+(defparameter *vpn-on* nil)
 
-(defcommand list-vpns () (:rest)
-  (when-let ((network (car (select-from-menu (current-screen)
-                                             (mapcar (lambda (g) (list g))
-                                                     (cl-ppcre:split "\\n"
-                                                                     (sudo-run "find /etc/openvpn/ \\( -name \"*.conf\" -o -name \"*.ovpn\" \\) ")))
-                                             "Networks:"))))
-    (sudo-run (format nil "nohup openvpn /etc/openvpn/client/~a &" network))))
+(defcommand vpns () (:rest)
+  (when-let ((network (car (select-from-menu
+                            (current-screen)
+                            (mapcar (lambda (g) (list g))
+                                    (cl-ppcre:split "\\n"
+                                                    (sudo-run "find /etc/openvpn/ \\( -name \"*.conf\" -o -name \"*.ovpn\" \\) ")))
+                            "Networks:"))))
+    (setf *vpn-on* t)
+    (sudo-run (format nil "nohup openvpn ~a &" network))))
 
-(defcommand kill-vpn (p) (:y-or-n "Kill VPN?")
+(defcommand kill-vpn (p) ((:y-or-n "Kill VPN?"))
   (if p
       (if-let ((vpn (cl-ppcre:scan-to-strings "openvpn" (sudo-run "ps"))))
-        (sudo-run (format nil "pkill ~a" vpn))
+        (progn (sudo-run (format nil "pkill ~a" vpn))
+               (setf *vpn-on* nil))
         (error "openvpn is not running"))
       "Ok"))
 
+(defcommand vpn-toggle () ()
+  (if *vpn-on*
+      (run-commands "kill-vpn")
+      (vpns)))

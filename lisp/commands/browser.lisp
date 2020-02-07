@@ -14,7 +14,7 @@
 
 (defvar *menu-max-length* 20)
 
-(defun subseq-from-end (sequence end)
+(defun remove-from-end (sequence end)
   (reverse (subseq (reverse sequence) end)))
 
 ;; requires lz4json and jq
@@ -22,19 +22,28 @@
 (defun current-session ()
   "Get session from firefox cache"
   (jonathan:parse
-   (format nil "[ ~a ]"
-           (subseq-from-end
-            (cl-ppcre:regex-replace-all "]"
-                                        (inferior-shell:run/ss
-                                         (format nil"lz4jsoncat ~a | jq -r '.windows[].tabs | map(.entries[].title)'" *session-file*)) "],")
-            1))))
+   (format
+    nil "[ ~a ]"
+    (remove-from-end
+     (cl-ppcre:regex-replace-all
+      "]"
+      (inferior-shell:run/ss
+       (format nil
+               "lz4jsoncat ~a | jq -r '.windows[].tabs | map(.entries[].title)'"
+               *session-file*))
+      "],")
+     1))))
+
 
 (defun all-workspace-windows ()
   "All windows on all screens"
-  (remove nil (flat-list (copy-seq (amapcar (if (eql (current-ws) x)
-                                                (screen-windows (current-screen))
-                                                (screen-windows (ws-screen x)))
-                                            (hash-table-values workspace-hash))))))
+  (remove nil (flat-list
+             (copy-seq
+              (amapcar
+               (if (eql (current-ws) x)
+                   (screen-windows (current-screen))
+                   (screen-windows (ws-screen x)))
+               (hash-table-values workspace-hash))))))
 
 (defun current-windows ()
   "Get current browser window names and object"
