@@ -5,6 +5,7 @@
 
 
 
+(defun nil let not or
 
 (in-package :stumpwm)
 

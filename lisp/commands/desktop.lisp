@@ -1,16 +1,9 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
-;; Workspaces
+;; Desktop
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
-
-;; So what's the plan?
-
-;; Create a new class for groups
-
-;; I can either extend the currently existing group system to include work-spaces
-;; Or I can attempt to just redifine the commands that I use
-
-;; I could also rename all groups not in the workspace to be hidden
+;; The Desktop System:
+;; Allows for the storage
 
 (in-package :stumpwm)
 
@@ -20,17 +13,6 @@
 (defhash *group-images*)
 
 (defvar *group-image-path* (concat *stumpwm-storage* "images/"))
-
-;; (defvar image-mutex (sb-thread:make-mutex :name "image-hash"))
-
-;; (sb-thread:list-all-threads)
-;; (setf (sb-thread:mutex-value image-mutex)
-
-;; (honestly we don't want too much going on at any one time)
-
-;; (bt:make-thread
- ;; #'(lambda ()
-     ;; (sb-thread:get-mutex (sb-thread:mu))))
 
 (defmacro hash? (key hashtable value)
   `(if (gethash ,key ,hashtable) nil
@@ -57,8 +39,10 @@
       (p (group-image-format (current-group))))
     (setf (gethash id *group-images*)
           (progn (run-shell-command
-                  (format nil "scrot -o -q 10 ~a" p))
+                  (format nil "scrot -o -q 50 ~a" p))
                  p))))
+
+(defvar *group-storage-path* (concat *stumpwm-storage* "groups/"))
 
 (defun group-state (n)
   (dump-to-file (dump-group (current-group))
@@ -170,8 +154,10 @@
                         (current-screen))
   (switch-to-group (slot-value *metaspace* :meta-group))
 
-  (restore-from-file (concat *group-image-path*
-                             (form "group-~ax~a" n n)))
+  (restore-from-file (concat *group-storage-path*
+                             (if (> (length (group-heads (current-group))) 1)
+                                 (form "group-~ax~a-with-head" n n)
+                                 (form "group-~ax~a" n n))))
 
   (if (group-windows (current-group))
       (format-images (slot-value *metaspace* :meta-group))
@@ -182,13 +168,126 @@
 ;; (move-group-to-screen (slot-value *metaspace* :meta-group)
 ;;                       (ws-screen (current-ws))))
 
+;; (dump-group-to-file "group4x4")
+
 (defcommand display-ws () ()
-  (space-this 3)
+  (space-this 4)
   (desktop-ws))
 
 (defcommand group-update-picture () ()
     (group-picture))
 
+
+
+(defvar *desktop* (concat *stumpwm-storage* "desktop/"))
+;; really all I need is the name, the number, and the screen
+
+(defun store-desktop ()
+  (let ((hs (hash-table-values workspace-hash)))
+    (loop for ws in hs
+          do (with-open-file (s (format nil "~ascreen-~a" *desktop* (ws-number ws)))
+               (write (list (ws-name ws)
+                         (ws-number ws)
+                         (dump-screen (if (ws-active-p ws) (current-screen)
+                                          (ws-screen ws))))
+                      s)))))
+
+
+(defun store-desktop ()
+  (let ((hs (hash-table-values workspace-hash)))
+    (with-open-file (s "desktop" :direction :output)
+      (write
+       (loop for ws in hs
+             collect (list (ws-name ws)
+                        (ws-number ws)
+                        (loop for g in (screen-groups
+                                       (if (ws-active-p ws) (current-screen)
+                                           (ws-screen ws)))
+                              collect (dump-group g))))
+       :stream s))))
+
+
+;; (store-desktop)
+
+(defun subseq-from-end (sequence end)
+  (reverse (subseq (reverse sequence) 0 end)))
+
+(defun create-groups (id gname-list)
+               (loop for x in gname-list
+                     do (let* ((screen (ws-screen (gethash id workspace-hash)))
+                               (g (find-group screen "Default")))
+                          (if g
+                              (setf (group-name g) x)
+                              (add-group screen x)))))
+
+;; Screw it!
+(defun restore-desktop ()
+  (labels ((create-groups (id gname-list)
+             (loop for x in gname-list
+                   do (let* ((screen (ws-screen (gethash id workspace-hash)))
+                             (g (find-group screen "Default")))
+                        (if g
+                            (setf (group-name g) x)
+                            (add-group screen x))))))
+    (let ((ms (current-screen)))
+      (progn
+        (defparameter *metaspace* (make-meta-space))
+        (create-new-workspace "screen-1")
+        (create-new-workspace "screen-2")
+        (create-new-workspace "screen-3")
+        (create-new-workspace "screen-4")
+        (create-groups 1 '("books" "browse" "rails" "videos"))
+        (create-groups 2 '("connections" "ops" "api" "schedule"))
+        (create-groups 3 '("servers" "lisp" "purple" "slack"))
+        (create-groups 4 '("relax" "lisp" "reading" "spotify"))
+        (setf (group-name (car (screen-groups ms)))
+              (format nil "~a" (gensym "meta")))
+        ;; (activate-ws (gethash 4 workspace-hash))
+        (switch-to-workspace (gethash 4 workspace-hash))))))
+
+
+#| (let ((ms (current-screen)))
+(setf (group-name (car (screen-groups ms)))
+      (format nil "~a" (gensym "meta")))
+(defparameter *metaspace* (make-meta-space))
+(activate-ws (gethash 4 workspace-hash)))
+|#
+
+;; (defun restore-desktop ()
+;;   (let ((ms (current-screen)))
+;;     (loop for x in (directory (concat *desktop* "*"))
+;;           do (let* ((name (subseq-from-end (namestring x) 8))
+;;                     (id (parse-integer (subseq-from-end (namestring x) 1)))
+;;                     (screen (init-screen
+;;                              (car (xlib:display-roots *display*)) name "")))
+;;                (init-workspace screen name id)
+;;                (restore-screen screen (read-dump-from-file
+;;                                        (namestring x)))))
+;;     (setf (group-name (car (screen-groups ms)))
+;;           (format nil "~a" (gensym "meta")))
+;;     (defparameter *metaspace* (make-meta-space))
+;;     (activate-ws (gethash 1 workspace-hash))))
+
+;; (with-open-file (fp file :direction :input)
+;;   (with-standard-io-syntax
+;;     (let ((*package* (find-package :stumpwm)))
+;;       (read fp))))
+
+;;   (concat *desktop* "screen-1")))
+
+;; (workspace-groups (gethash 1 workspace-hash))
+;; (workspace-groups (gethash 2 workspace-hash))
+;; (restore-screen (current-screen)
+;;                 (read-dump-from-file
+;;                  (concat *desktop* "screen-1")))
+
+(defcommand init-desktop () ()
+    (restore-desktop))
+
+;; (screen-groups (ws-screen (car (hash-table-values workspace-hash))))       ;
+
+;; (dump-screen (current-screen))
+;; (dump-screen-to-file  "screen-4")
 
 ;; (if (switch-to-group (find-group (current-screen) ".metaspace"))
 ;;     (restore-from-file (concat *group-image-path* (form "group-~ax~a" n n))))

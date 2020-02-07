@@ -2,6 +2,7 @@
 ;;-------~---~----------~----------~----
 ;; Rewrite some commands
 ;;-------~---~----------~----------~----
+(in-package :stumpwm)
 
 ;; reassign original commands to *-forget
 (defcommand quit-forget () () "Quit StumpWM without remembering current state."

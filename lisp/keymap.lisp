@@ -101,6 +101,7 @@
 
 ;; (define-key *group-bindings* (kbd "g") "group-interactive-keymap")
 (define-key *group-bindings* (kbd "p") "group-update-picture")
+(define-key *group-bindings* (kbd "s-p") "group-update-picture")
 (define-key *group-bindings* (kbd "G") "group-interactive-keymap")
 (define-key *group-bindings* (kbd "g") "display-ws")
 
@@ -122,6 +123,7 @@
     (define-key m (kbd "l") "set-backlight")
     (define-key m (kbd "L") "reset-backlight")
     (define-key m (kbd "n") "net-scan")
+    (define-key m (kbd "N") "vpn-toggle")
     m ; NOTE: this is important
     ))
 
