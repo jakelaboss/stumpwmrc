@@ -32,15 +32,38 @@
           (ws-number (group-workspace group))
           (group-number group)))
 
+(defun multi-head? ()
+  (> (length (group-heads (current-group))) 1))
+
 (defun group-picture ()
   (let ((id (group-image-id (current-group)))
       (p (group-image-format (current-group))))
+    (when
     (setf (gethash id *group-images*)
           (progn (run-shell-command
-                  (format nil "scrot -o -q 50 ~a" p))
-                 p))))
+                  (if (multi-head?)
+                      (format nil "scrot -o -q 50 ~a; convert ~a -gravity North -chop 0x1080 ~a"
+                              p p p)
+                      (format nil "scrot -o -q 50 ~a" p))
+                  p))))))
 
 (defvar *group-storage-path* (concat *stumpwm-storage* "groups/"))
+
+;; (map nil
+;;      #'(lambda (screen)
+;;          (map nil
+;;               #'(lambda (group)
+;;                   (if (multi-head?)
+;;                       (remove-head screen
+;;                                    (car (sort (copy-seq (group-heads (current-group)))
+;;                                               #'(lambda (x y)
+;;                                                   (< (+ (head-width x) (head-height x))
+;;                                                      (+ (head-width y) (head-height y)))))))))
+;;               (screen-groups screen)))
+;;      (cons (current-screen)
+;;           (mapcar #'ws-screen (hash-table-values workspace-hash))))
+;;      (all-screens)
+;;      (remove-head ())
 
 (defun group-state (n)
   (dump-to-file (dump-group (current-group))
@@ -81,20 +104,67 @@
 ;; (print tree-test)
 
 (defun format-images (group)
-      (mapcar
-       #'(lambda (win frame)
-           (send-fake-key win (parse-key "RET"))
-           (pull-window win frame))
+  (let* ((multi-head (> (length (group-heads group)) 1))
+         (heads
+           (if multi-head
+               (sort (copy-seq (group-heads group))
+                     #'(lambda (x y)
+                         (> (length (head-frames group x))
+                            (length (head-frames group y)))))
+               (group-heads group)))
+         (dis (car heads))
+         (extra (if multi-head (cadr heads))))
 
-       (print (sort (copy-seq (head-windows group (car (group-heads group))))
-                    #'(lambda (x y) (if (< (window-number x) (window-number y)) t
-                                   (< (ws-number (window-workspace x))
-                                      (ws-number (window-workspace y)))))))
+    ;; Clear one of the heads
+    ;; (print head)
+         (if multi-head
+             (clear-frame (car (head-frames group extra)) group))
 
-       (print (sort (copy-seq (flat-list (tile-group-frame-tree group)))
-              #'(lambda (x y)
-                  (if (> (frame-y x) (frame-y y)) t
-                      (< (frame-x x) (frame-x y))))))))
+    (mapcar
+     #'(lambda (win frame)
+         (send-fake-key win (parse-key "RET"))
+         (pull-window win frame))
+
+     (print (sort (copy-seq (print (group-windows group)))
+                  #'(lambda (x y)
+                      (if (< (window-number x) (window-number y)) t
+                          (< (ws-number (window-workspace x))
+                             (ws-number (window-workspace y)))))))
+
+     (print (sort (copy-seq (head-frames group dis))
+                  #'(lambda (x y)
+                      (if (> (frame-y x) (frame-y y)) t
+                          (< (frame-x x) (frame-x y)))))))))
+
+;; (format-images (slot-value *metaspace* :meta-group))
+;; (let ((group (slot-value *metaspace* :meta-group)))
+;;   (let ((head (sort (copy-seq (group-heads group))
+;;                   #'(lambda (x y)
+;;                       (> (length (head-frames group x))
+;;                          (length (head-frames group y)))))))
+;;     (print head)))
+
+;;     (flat-list (head-frames group head))))
+
+;; (space-this 4)
+;;   (mapcar
+;;    #'(lambda (win frame)
+;;        (send-fake-key win (parse-key "RET"))
+;;        (pull-window win frame))
+
+;;    (print (sort (copy-seq (head-windows group head))
+;;                 #'(lambda (x y)
+;;                     (if (< (window-number x) (window-number y)) t
+;;                         (< (ws-number (window-workspace x))
+;;                            (ws-number (window-workspace y)))))))
+
+;;    (print (sort (copy-seq (flat-list (head-frames group head)))
+;;                 #'(lambda (x y)
+;;                     (if (> (frame-y x) (frame-y y)) t
+;;                         (< (frame-x x) (frame-x y)))))))))
+
+  ;; (head-frames (current-group))
+  ;; (car (tile-group-frame-tree (current-group)))
 
 (defun display-images ()
   (run-commands (print (format nil "exec feh -g 1280x720 -. -w -A \";\" --bg-color black ~aS*.jpg"
@@ -160,7 +230,7 @@
   (if (group-windows (current-group))
       (format-images (slot-value *metaspace* :meta-group))
       ;; (refresh-images (slot-value *metaspace* :meta-group))
-        (display-images)))
+      (display-images)))
 ;; (sleep 10)
 
 ;; (move-group-to-screen (slot-value *metaspace* :meta-group)
@@ -174,8 +244,6 @@
 
 (defcommand group-update-picture () ()
     (group-picture))
-
-
 
 (defvar *desktop* (concat *stumpwm-storage* "desktop/"))
 ;; really all I need is the name, the number, and the screen
