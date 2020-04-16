@@ -63,7 +63,7 @@
                                ;; (cl-ppcre:scan-to-strings "\\tSSID: \\S+.*" x) "")
                                hs)
                       (cons (ssid x)
-                            (if (cl-ppcre:scan "RSN" x) t nil))))
+                            (if (or (cl-ppcre:scan "WPA" x) (cl-ppcre:scan "RSN" x)) t nil))))
               networks)
       (setf *network-hash-table* hs)
       (select-from-menu screen
@@ -90,17 +90,15 @@
       (progn
         ;; if the network requires a password
         (cmd *wireless-wpa* (password) ((:password "Input Network Password: ")) ;; X is not
-             (progn
-               (with-output-to-file (stream (concat *stumpwm-netctl*
-                                                    netctl-name)
-                                            :if-does-not-exist :create
-                                            :if-exists :overwrite)
-                 (format stream "~a" (cl-ppcre:regex-replace "MyNetwork"
-                                                             (cl-ppcre:regex-replace "WirelessKey"
-                                                                                     (sudo-run "cat /etc/netctl/lisp/wireless-wpa") password)
-                                                             (car (gethash network *network-hash-table*)))))
-               (sudo-run (concat "cp " *stumpwm-netctl*
-                                 netctl-name " /etc/netctl/" (format-network-name network)))))
+             (progn (with-output-to-file (stream (concat *stumpwm-netctl* netctl-name)
+                                                 :if-does-not-exist :create :if-exists :overwrite)
+                      (format stream "~a"
+                              (cl-ppcre:regex-replace "MyNetwork"
+                                                      (cl-ppcre:regex-replace "WirelessKey"
+                                                                              (sudo-run "cat /etc/netctl/lisp/wireless-wpa") password)
+                                                      (car (gethash network *network-hash-table*)))))
+                    (sudo-run (concat "cp " *stumpwm-netctl*
+                                      netctl-name " /etc/netctl/" (format-network-name network)))))
         (cmd *wireless-open* () ()
              (progn
                (with-output-to-file (stream (concat *stumpwm-netctl* netctl-name)
@@ -131,7 +129,6 @@
 
 (export '(*network-entry-p* *wireless-wpa* *wireless-open*))
 
-
 (defcommand netctl () (:rest)
   (when-let ((network (car (select-from-menu (current-screen)
                                         (mapcar (lambda (g) (list g))
@@ -143,18 +140,22 @@
 (defcommand net-scan () (:rest)
   (unwind-protect
        (labels ((net (network known-list)
-                  (if (null (cl-ppcre:scan-to-strings (format-network-name network) known-list))
+                  (if (null (cl-ppcre:scan-to-strings
+                             (format-network-name network) known-list))
                       (add-to-known-networks network)
-                      (sudo-run (format nil "netctl switch-to ~a" (format-network-name network))))))
+                      (sudo-run (format nil "netctl switch-to ~a"
+                                        (format-network-name network))))))
          (if (net-status *network-interface*)
              (let* ((network (select-network-from-menu (current-screen)))
                     (known-networks (sudo-run "netctl list")))
-               (if network (net (car network) known-networks)))
+               (if network
+                   (net (car network) known-networks)))
              (progn (sudo-run (format nil "ip link set ~a up" *network-interface*))
                     (let* ((network (select-network-from-menu (current-screen)))
                            (known-networks (sudo-run "netctl list")))
                       (sudo-run (format nil "ip link set ~a down" *network-interface*))
-                      (if network (net (car network) known-networks))))))))
+                      (if network
+                          (net (car network) known-networks))))))))
 
 (defcommand remove-network () (:rest)
   (when-let* ((known-networks (cl-ppcre:split "\\n"
@@ -196,3 +197,87 @@
   (if *vpn-on*
       (run-commands "kill-vpn")
       (vpns)))
+
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Bluetooth
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+
+
+(defun bluetooth-devices ()
+  "List of bluetooth device names and their MAC"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x)))
+    (cmd "bluetoothctl power on")
+    (mapcar #'(lambda (x)
+                (list (subseq x 25)
+                      (subseq x 7 24)))
+            (cl-ppcre:split #\Newline
+                            (cmd "bluetoothctl paired-devices")))))
+
+(defun blue-query (query)
+  "Attempts to connect to a device by query"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x))
+           (connect (x)
+             (handler-case
+                 (inferior-shell:run/s (concat "bluetoothctl connect " x))
+               (inferior-shell::subprocess-error () nil))))
+    (cmd "bluetoothctl power on")
+    (let ((devices (bluetooth-devices)))
+      (connect (cdr (find-if #'(lambda (x)
+                                 (cl-ppcre:scan query x))
+                             devices :key 'car))))))
+
+(defun blue-connect (mac)
+  "Attempts to connect to a device by mac address"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x))
+           (connect (x)
+             (handler-case
+                 (inferior-shell:run/s (concat "bluetoothctl connect " x))
+               (inferior-shell::subprocess-error () nil))))
+    (cmd "bluetoothctl power on")
+    (connect mac)))
+
+(defun blue-scan ()
+  (labels ((filter (regex target)
+             (cl-ppcre:scan-to-strings regex target))))
+  ;; Issue: scan does not end, unless scan off is also run
+  ;; I'll likely need to redirect the output and fork the process
+  (inferior-shell:run/s "bluetoothctl scan on" ))
+
+
+;; TODO, add a new entry to bluetooth menu
+;; If new is selected we'll ask if they want to scan, then do this the same way we do
+;; the network entries
+
+(defcommand bluetooth () (:rest)
+  (if-let ((dev (select-from-menu (current-screen)
+                                  (bluetooth-devices))))
+    (blue-connect (cadr dev))))
+
+(defun blue-disconnect ()
+  (inferior-shell:run/s "bluetoothctl disconnect"))
+
+(defcommand bluetooth-disconnect () ()
+  (blue-disconnect))
+
+(defun blue-vol-inc ()
+  (macrolet ((cmd (&rest x)
+               `(inferior-shell:run/s (format nil ,@x))))
+    (let ((bl (subseq (cmd "pactl list sinks short | grep bluez") 0 1)))
+      (cmd "pactl set-sink-mute 0 false ; pactl set-sink-volume ~a +5%" bl))))
+
+(defun blue-vol-dec ()
+  (macrolet ((cmd (&rest x)
+               `(inferior-shell:run/s (format nil ,@x))))
+    (let ((bl (subseq (cmd "pactl list sinks short | grep bluez") 0 1)))
+      (cmd "pactl set-sink-mute 0 false ; pactl set-sink-volume ~a -5%" bl))))
+
+(defcommand inc-volume-blue () ()
+  (blue-vol-inc))
+
+(defcommand dec-volume-blue () ()
+  (blue-vol-dec))
