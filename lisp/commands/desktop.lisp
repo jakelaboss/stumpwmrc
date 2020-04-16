@@ -44,7 +44,7 @@
     (setf (gethash id *group-images*)
           (progn (run-shell-command
                   (if (multi-head?)
-                      (format nil "scrot -o -q 50 ~a; convert ~a -gravity North -chop 0x1080 ~a"
+                      (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
                               p p p)
                       (format nil "scrot -o -q 50 ~a" p))
                   p))))))
@@ -195,7 +195,7 @@
                 nil)))
 
     ;; To reload the image
-    (send-fake-key (current-window) (parse-key "RET"))
+    (if win (send-fake-key (current-window) (parse-key "RET")))
     ;; So we are always adding the group to the current screen, so we
     ;; should always deactivate. but let's check anyway
     (if p
@@ -210,7 +210,6 @@
 
 (define-interactive-keymap desktop-ws (:on-exit #'desktop-switch)
   ;; Movement Mapping ;;
-  ((kbd "q") "gnext")
   ((kbd "j") "move-focus down")
   ((kbd "h") "move-focus left")
   ((kbd "k") "move-focus up")
@@ -226,7 +225,7 @@
 
   (restore-from-file (concat *group-storage-path*
                              (if (> (length (group-heads (current-group))) 1)
-                                 (form "group-~ax~a-with-head" n n)
+                                 (form "group-~ax~a-with-heads" n n)
                                  (form "group-~ax~a" n n))))
 
   (if (group-windows (current-group))
@@ -238,7 +237,8 @@
 ;; (move-group-to-screen (slot-value *metaspace* :meta-group)
 ;;                       (ws-screen (current-ws))))
 
-;; (dump-group-to-file "group4x4")
+;; (dump-screen (current-screen))
+(dump-group-to-file "group-4x4")
 
 (defcommand display-ws () ()
   (space-this 4)
@@ -304,10 +304,10 @@
         (create-new-workspace "screen-2")
         (create-new-workspace "screen-3")
         (create-new-workspace "screen-4")
-        (create-groups 1 '("books" "browse" "rails" "videos"))
-        (create-groups 2 '("connections" "ops" "api" "schedule"))
-        (create-groups 3 '("servers" "lisp" "purple" "slack"))
-        (create-groups 4 '("relax" "lisp" "reading" "spotify"))
+        (create-groups 1 '("relax" "brose-main" "work" "videos"))
+        (create-groups 2 '("connections" "ops" "games" "media"))
+        (create-groups 3 '("servers" "lisp" "meta" "comms"))
+        (create-groups 4 '("head-space" "development" "reading" "music"))
         (setf (group-name (car (screen-groups ms)))
               (format nil "~a" (gensym "meta")))
         ;; (activate-ws (gethash 4 workspace-hash))

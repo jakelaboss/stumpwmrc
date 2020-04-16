@@ -36,6 +36,7 @@
    (active-p :initform nil :accessor ws-active-p)
    (current-group :accessor ws-current-group)))
 
+
 (defgeneric ws-number (workspace))
 (defgeneric ws-name (workspace))
 (defgeneric ws-current-screen (workspace))
@@ -241,15 +242,16 @@ for the screen on the ws"
 
 
 (defun group-workspace (group)
-  (let ((active-ws (slot-value *metaspace* :active-ws)))
-    (if (member group (screen-groups (current-screen)) :test 'eql)
-        active-ws
-        (loop for ws in (hash-table-alist workspace-hash)
-              if (find group (ws-groups (cdr ws)) :test 'eql)
-                return (cdr ws)))))
+  (if group
+      (let ((active-ws (slot-value *metaspace* :active-ws)))
+        (if (member group (screen-groups (current-screen)) :test 'eql)
+            active-ws
+            (loop for ws in (hash-table-alist workspace-hash)
+                  if (find group (ws-groups (cdr ws)) :test 'eql)
+                    return (cdr ws))))))
 
 (defun window-workspace (window)
-  (group-workspace (window-group window)))
+  (if window (group-workspace (window-group window))))
 
 ;; (time (group-workspace (current-group)))
 ;; (time (group-workspace (car (ws-groups (gethash 1 workspace-hash)))))

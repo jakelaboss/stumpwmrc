@@ -18,16 +18,17 @@
 (ql:quickload :swank-client)
 
 (defcommand swank () ()
-  (swank:create-server :port 4008 :style swank:*communication-style*
-                       :dont-close t)
-  (echo-string (current-screen)
-               "Starting swank on port 4006."))
+  (let ((port 4008))
+    (swank:create-server :port port :style swank:*communication-style*
+                         :dont-close t)
+    (echo-string (current-screen)
+                 (format nil "Starting swank on port ~a." port))))
 
 (defcommand swank-lan () ()
   (swank:create-server :port 4008 :style swank:*communication-style* :interface "10.10.10.230"
                        :dont-close t)
   (echo-string (current-screen)
-               "Starting swank on port 4006."))
+               "Starting swank on port 4008."))
 
 (defparameter *desktop-swank* nil)
 

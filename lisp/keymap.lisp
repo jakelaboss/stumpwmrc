@@ -3,18 +3,7 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 (in-package :stumpwm)
-;; Main;;
 
-;; (defvar *main-map*
-;;   (let ((m (stumpwm:make-sparse-keymap)))
-;;     (stumpwm:define-key m (stumpwm:kbd "a") '*application-bindings*)
-;;     (stumpwm:define-key m (stumpwm:kbd "g") '*group-bindings*)
-;;     (stumpwm:define-key m (stumpwm:kbd "m") '*common-lisp-mode*)
-;;     (stumpwm:define-key m (stumpwm:kbd "e") '*emacs-binding*)
-;;     m
-;;     ))
-;; (stumpwm:define-key stumpwm:*top-map* (stumpwm:set-prefix-key "j") *main-map*)
-;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Applications ;;
 (defvar *application-bindings*
    (let ((m (stumpwm:make-sparse-keymap)))
@@ -51,10 +40,8 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 (defvar *group-bindings*
   (let ((m (make-sparse-keymap)))
-    ;; (define-key m (kbd "l") "gnext")
     (define-key m (kbd "l") "gnext-swank")
     (define-key m (kbd "s-l") "gnext-swank")
-    ;; (define-key m (kbd "h") "gprev")
     (define-key m (kbd "s-h") "gprev-swank")
     (define-key m (kbd "h") "gprev-swank")
     (define-key m (kbd "L") "gnext-with-window")
@@ -75,8 +62,7 @@
     (define-key m (kbd "J") "ws-prev-with-window")
     (define-key m (kbd "s") "ws-new")
     (define-key m (kbd "S") "ws-select")
-    m ; NOTE: this is important
-    ))
+    m))
 
 (define-key *top-map* (kbd "s-g") '*group-bindings*)
 
@@ -342,7 +328,7 @@
 
 ;; (swank-client:slime-eval  nas)
 
-;; (trivial-ssh:with-connection (conn "192.168.0.103"))
+;; (swank-client:with-slime-connection (server "192.168.0.100" 4007) (+ 1 1))
 
 (defvar *emacs-port* 4006)
 (defvar *swank-client-port* 10000)
@@ -377,89 +363,3 @@ interface, to handle Swank Client connection requests."
   (start-swank-server-for-emacs *emacs-port*)
   (start-swank-server-for-swank-client *swank-client-port*)
   (wait-for-swank-thread))
-
-;; (main)
-
-;; (swank-api:with-connection (swank-api:*emacs-connection*) ((swank:)
-
-;; ((swank-api:send-to-remote-channel 4006    )))
-
-;; (stumpwm:define-key *top-map* (stumpwmw) (window-send-string (format nil)"~a"))
-
-;; (defmacro if-test (test then &optional else)
-;;     `(cond (,test ,then)
-;;            (,else)))
-
-
-;; (defun if-test-defun (test then &optional else)
-;;   (cond))
-
-;; (cond (nil t)
-;;       (t))
-
-;; (if-test nil 'loo "FUCK YOU")
-
-
-;; (swank-repl:listener-eval :port 4006 :style swank:*communication-style*
-;;                      :dont-close t)
-
-;; (let* ((server (usocket:socket-connect "127.0.0.1" 4006))
-;;        (object (stream ))
-;;   (usocket:socket-stream )}))
-
-;; process to create a ssh link between local 4006 port and port on remote 4005 port
-
-;; This will create a vnc-server on a remote server
-
-;; (defmacro define-ssh-command (name ssh-arguments command)
-;;   "Creates a ssh command to be run on"
-;;   (let* ((nm name)
-;;          (cmd command)
-;;          (ssh ssh-arguments)
-;;          (remote "192.168.0.100"))
-;;     `(stumpwm:defcommand ,nm () ()
-;;        (let* ((password *password*)
-;;               (if (null ,port)
-;;                   (stumpwm:run-shell-command (concat "sshpass -p \"" password
-;;                                                      "\" ssh -o StrictHostKeyChecking=no "
-;;                                                      ,ssh ,remote " '" ,cmd "'"))))
-;;          ))))
-
-;;      "-t -L 5900:localhost:5900 "
-
-;; ssh -L4006:127.0.0.1:4005 192.168.0.100
-
-;; TODO change from run-shell-command to usocket and inferior-shell
-(stumpwm:defcommand vnc-server () ()
-  (let* ((password "")
-         (remote "192.168.0.100"))
-    (stumpwm:run-shell-command (concat "sshpass -p \"" password
-                                       "\" ssh -o StrictHostKeyChecking=no -t -L 5900:localhost:5900 "
-                                       remote
-                                       " 'x11vnc "
-                                       "x11vnc -noxdamage -many -display :"
-                                       display
-                                       "-auth /home/arch/.Xauthority'"))))
-
-
-(stumpwm:defcommand link-desktop () ()
-  (let* ((password "")
-         (remote "192.168.0.103"))
-    (stumpwm:run-shell-command (concat "sshpass -p \"" password
-                                       "\" ssh -o StrictHostKeyChecking=no -L 5900:localhost:5900 "
-                                       remote))))
-
-
-;; (defmacro create-link (name remote local-port remote-port)
-;; `(stumpwm:defcommand ,name () ()
-;;          (remote ,remote))
-;;     (stumpwm:run-shell-command (concat "sshpass -p \"" password
-;;                                        "\" ssh -o StrictHostKeyChecking=no -L 5900:localhost:5900 "
-;;                                        remote))))
-
-
-(stumpwm:defcommand vnc-viewer () ()
-  (stumpwm:run-shell-command "vncviewer localhost:0"))
-
-;; ;; "modprobe acpi_call"
-;; ;; "/usr/share/acpi_call/examples/turn_off_gpu.sh"

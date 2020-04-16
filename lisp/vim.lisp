@@ -49,6 +49,12 @@
 (stumpwm:define-key *top-map* (stumpwm:kbd "F2") "dec-volume")
 (stumpwm:define-key *top-map* (stumpwm:kbd "F3") "inc-volume")
 
+;; Browser Commands ;;
+(define-key *top-map* (stumpwm:kbd "F1") "mute-toggle")
+(define-key *top-map* (stumpwm:kbd "F2") "dec-volume")
+(define-key *top-map* (stumpwm:kbd "S-C-w") "eval (print 'hello)")
+
+
 
 ;; (uiop:run-program "sudo mount -t ntfs-3g /dev/sd?n /where/to/mnt)
 

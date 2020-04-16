@@ -4,10 +4,73 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 (in-package :stumpwm)
 
+;; So this has become more difficult since the introduction of
+;; the workspace
+
 (defun remember-all () ()
 "Similiar to remember-group except all information is dumped, useful
 for next startup or recalling all undo actions."
   (dump-to-datadir "rules") (dump-to-datadir "desktop"))
+
+(sosei::msize-object ())
+
+(defvar *remember-path* (concat *stumpwm-storage* "undo/"))
+
+(defun dump-workspace-to-file (ws)
+  (dump-to-file (list (ws-number ws)
+                   (dump-screen (ws-screen ws))
+                   (ws-name ws)
+                   (ws-active-p ws))
+                (format nil "~aworkspace-~a" *remember-path* (ws-number ws))))
+
+(defun restore-workspace (dump)
+  (if (null  (gethash (car dump) workspace-hash))
+      (let ((name (caddr dump))
+          (ws (make-instance 'workspace)))
+        (setf (ws-number ws) (car dump)
+              (ws-screen ws) (init-screen
+                              (car (xlib:display-roots *display*))
+                              name "")
+              (ws-name ws) name
+              (ws-current-group ws) 0
+              (gethash id workspace-hash) ws))))
+
+(defun dump-desktop (ws-hash)
+  (dump-to-file
+   (mapcar #'(lambda (ws)
+               (list (ws-number ws)
+                  (dump-screen (ws-screen ws))
+                  (ws-name ws)
+                  (ws-active-p ws)))
+           (hash-table-values ws-hash))
+   (format nil "~aworkspaces" *remember-path*)))
+
+(dump-desktop workspace-hash)
+
+(defun restore-desktop (dump)
+  (mapcar #'restore-workspace
+          dump))
+
+
+;; (dump-workspace-to-file (car (hash-table-values workspace-hash)))
+(restore-workspace (read-from-string (read-file-into-string
+                   (format nil "~aworkspace-~a" *remember-path* 3))))
+(du)
+(restore)
+
+
+(defun remember-screen ()
+  (car (hash-table-values workspace-hash))
+  (sosei:pwrite* "test" )
+  (restore-screen (ws-screen ws) ())
+  (sosei:pwrite* "test" workspace-hash)
+  (print (dump-screen (current-screen)))
+  )
+(dump-screen-to-file "test")
+(dump-desktop-to-file "test")
+(dum)
+(restore-screen (current-screen) )
+)
 
 ;; dump [current]-group (for current-screen), [current]-screen, desktop or window-placement-rules
 ;; to a dynamically named file in user defined *data-dir*.
