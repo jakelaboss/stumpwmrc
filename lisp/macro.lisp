@@ -79,7 +79,24 @@
 
 ;; Because the *key-press-hook* only activates for the current keymap
 ;; we define a keymap that has coverage for virtually all keys, as well as
-;; commands to
+;; commands
+(defun enter-interactive-keymap (kmap name)
+  "Enter interactive mode"
+  (message "~S started." name)
+  (push-top-map kmap))
+
+(defun exit-interactive-keymap (name)
+  "Exits interactive mode"
+  (message "~S finished." name)
+  (pop-top-map))
+
+(defcommand call-and-exit-kmap (command exit-command) ((:command "command to run: ")
+                                                       (:command "exit command: "))
+  "This command effectively calls two other commands in succession, via run-commands.
+it is designed for use in the define-interactive-keymap macro, to implement exiting
+the keymap on keypress. "
+  (run-commands command exit-command))
+
 (defmacro define-interactive-keymap
     (name (&key on-enter on-exit abort-if (exit-on '((kbd "RET")
                                                      (kbd "ESC")
@@ -87,15 +104,13 @@
      &body key-bindings)
   "Declare an interactive keymap mode. This can be used for developing
 interactive modes or command trees, such as @command{iresize}.
-
 The NAME argument follows the same convention as in @command{defcommand}.
-
 ON-ENTER and ON-EXIT are optional functions to run before and after the
 interactive keymap mode, respectively. If ABORT-IF is defined, the interactive
 keymap will only be activated if calling ABORT-IF returns true.
-
 KEY-BINDINGS is a list of the following form: ((KEY COMMAND) (KEY COMMAND) ...)
-
+If one appends t to the end of a binding like so: ((kbd \"n\") \"cmd\" t) then
+the keymap is immediately exited after running the command. 
 Each element in KEY-BINDINGS declares a command inside the interactive keymap.
 Be aware that these commands won't require a prefix to run."
   (let* ((command (if (listp name) (car name) name))
@@ -105,7 +120,11 @@ Be aware that these commands won't require a prefix to run."
         (parse-body key-bindings :documentation t)
       `(let ((,keymap (make-sparse-keymap)))
          ,@(loop for keyb in key-bindings
-                 collect `(define-key ,keymap ,@keyb))
+                 collect `(define-key ,keymap ,(first keyb)
+                            ,(if (third keyb)
+                                 (concatenate 'string "call-and-exit-kmap \""
+                                              (second keyb) "\" " exit-command)
+                                 (second keyb))))
          ,@(loop for keyb in exit-on
                  collect `(define-key ,keymap ,keyb ,exit-command))
 
@@ -122,7 +141,6 @@ Be aware that these commands won't require a prefix to run."
          (defcommand ,(intern exit-command) () ()
            ,@(when on-exit `((funcall ,on-exit)))
            (exit-interactive-keymap (quote ,command)))))))
-
 
 (defmacro def-interactive-keymap ()
   `(define-interactive-keymap (macro-keymap tile-group) (:on-enter #'start-macros :on-exit #'stop-macros :exit-on nil)
@@ -210,7 +228,6 @@ Be aware that these commands won't require a prefix to run."
                                (eval-command (car (reverse *dotimes-commands*))))
                              (remove-hook *key-press-hook* 'number-times-record-fn)))))
 
-
 (define-key *top-map* (kbd "s-2") "eval (stumpwm::number-times 2)")
 (define-key *top-map*  (kbd "s-3") "eval (stumpwm::number-times 3)")
 (define-key *top-map*  (kbd "s-4") "eval (stumpwm::number-times 4)")
@@ -219,6 +236,5 @@ Be aware that these commands won't require a prefix to run."
 (define-key *top-map*  (kbd "s-7") "eval (stumpwm::number-times 7)")
 (define-key *top-map*  (kbd "s-8") "eval (stumpwm::number-times 8)")
 (define-key *top-map* (kbd "s-9") "eval (stumpwm::number-times 9)")
-
 
 (def-interactive-keymap)

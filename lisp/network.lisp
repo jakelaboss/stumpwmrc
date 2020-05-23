@@ -47,24 +47,25 @@
 ;; Prompt for network
 (defun select-network-from-menu (screen)
   (labels ((ssid (x)
-             (cl-ppcre:scan-to-strings "\\S+.*(?!\\tSSID: )" x) ""))
-    (profile (x)
+             (cl-ppcre:regex-replace-all "\\tSSID: "
+                                         (cl-ppcre:scan-to-strings "\\tSSID: \\S+.*" x) ""))
+           (profile (x)
              (cl-ppcre:regex-replace-all " " (ssid x) "_")))
-  (let* ((hs (make-hash-table :test #'equal))
-         (scan (sudo-run "iw dev wlp3s0 scan"))
-         (networks (remove nil (cl-ppcre:split "BSS" scan)))
-         (net-string (remove nil (mapcar #'profile networks))))
-    (setf *iw-scan* scan)
-    (mapcar (lambda (x)
-              (setf (gethash (profile x) hs)
-                    (cons (ssid x)
-                          (if (cl-ppcre:scan "RSN" x) t nil))))
-            networks)
-    (setf *network-hash-table* hs)
-    (select-from-menu screen
-                      (mapcar (lambda (g) (list g))
-                              net-string)
-                      "Networks:"))))
+    (let* ((hs (make-hash-table :test #'equal))
+           (scan (sudo-run "iw dev wlp3s0 scan"))
+           (networks (remove nil (cl-ppcre:split "BSS" scan)))
+           (net-string (remove nil (mapcar #'profile networks))))
+      (setf *iw-scan* scan)
+      (mapcar (lambda (x)
+                (setf (gethash (profile x) hs)
+                      (cons (ssid x)
+                            (if (cl-ppcre:scan "RSN" x) t nil))))
+              networks)
+      (setf *network-hash-table* hs)
+      (select-from-menu screen
+                        (mapcar (lambda (g) (list g))
+                                net-string)
+                        "Networks:"))))
 
 (defun format-network-name (network-name)
   (cl-ppcre:regex-replace-all " "
@@ -198,3 +199,86 @@
   (if *vpn-on*
       (run-commands "kill-vpn")
       (vpns)))
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Bluetooth
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+
+
+
+(defun bluetooth-devices ()
+  "List of bluetooth device names and their MAC"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x)))
+    (cmd "bluetoothctl power on")
+    (mapcar #'(lambda (x)
+                (list (subseq x 25)
+                      (subseq x 7 24)))
+            (cl-ppcre:split #\Newline
+                            (cmd "bluetoothctl paired-devices")))))
+
+(defun blue-query (query)
+  "Attempts to connect to a device by query"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x))
+           (connect (x)
+             (handler-case
+                 (inferior-shell:run/s (concat "bluetoothctl connect " x))
+               (inferior-shell::subprocess-error () nil))))
+    (cmd "bluetoothctl power on")
+    (let ((devices (bluetooth-devices)))
+      (connect (cdr (find-if #'(lambda (x)
+                                 (cl-ppcre:scan query x))
+                             devices :key 'car))))))
+
+(defun blue-connect (mac)
+  "Attempts to connect to a device by mac address"
+  (labels ((cmd (x)
+             (inferior-shell:run/s x))
+           (connect (x)
+             (handler-case
+                 (inferior-shell:run/s (concat "bluetoothctl connect " x))
+               (inferior-shell::subprocess-error () nil))))
+    (cmd "bluetoothctl power on")
+    (connect mac)))
+
+(defun blue-scan ()
+  (labels ((filter (regex target)
+             (cl-ppcre:scan-to-strings regex target))))
+  ;; Issue: scan does not end, unless scan off is also run
+  ;; I'll likely need to redirect the output and fork the process
+  (inferior-shell:run/s "bluetoothctl scan on" ))
+
+
+;; TODO, add a new entry to bluetooth menu
+;; If new is selected we'll ask if they want to scan, then do this the same way we do
+;; the network entries
+
+(defcommand bluetooth () (:rest)
+  (if-let ((dev (select-from-menu (current-screen)
+                                  (bluetooth-devices))))
+    (blue-connect (cadr dev))))
+
+(defun blue-disconnect ()
+  (inferior-shell:run/s "bluetoothctl disconnect"))
+
+(defcommand bluetooth-disconnect () ()
+  (blue-disconnect))
+
+(defun blue-vol-inc ()
+  (macrolet ((cmd (&rest x)
+               `(inferior-shell:run/s (format nil ,@x))))
+    (let ((bl (print (parse-integer (cmd "pactl list sinks short | grep bluez") :junk-allowed t))))
+      (cmd "pactl set-sink-mute 0 false ; pactl set-sink-volume ~a +5%" bl))))
+
+(defun blue-vol-dec ()
+  (macrolet ((cmd (&rest x)
+               `(inferior-shell:run/s (format nil ,@x))))
+    (let ((bl (subseq (cmd "pactl list sinks short | grep bluez")) 0 1))
+      (cmd "pactl set-sink-mute 0 false ; pactl set-sink-volume ~a -5%" bl))))
+
+(defcommand inc-volume-blue () ()
+  (blue-vol-inc))
+
+(defcommand dec-volume-blue () ()
+  (blue-vol-dec))

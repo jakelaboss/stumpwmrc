@@ -11,18 +11,6 @@
 ;; Or I can attempt to just redifine the commands that I use
 
 ;; I could also rename all groups not in the workspace to be hidden
-
-;; TODO Should I set the Screen-ID? Or the Screen Itself?
-;; Redefine group class to include original Screen ID
-;; (defclass group ()
-;;   ((screen :initarg :screen :accessor group-screen)
-;;    (windows :initform nil :accessor group-windows)
-;;    (screen-id :initform nil :accessor group-screen-id) ;; This is the original Screen ID. IT should be set once and not changed
-;;    (current-window :initform nil :accessor group-current-window)
-;;    (number :initarg :number :accessor group-number)
-;;    (name :initarg :name :accessor group-name)
-;;    (on-top-windows :initform nil :accessor group-on-top-windows)))
-
 ;; Define the workspace class and initialization
 
 (in-package :stumpwm)
@@ -76,34 +64,13 @@
            (member group (screen-groups screen) :test 'eql))
         (removef (screen-groups current-screen) group)
 
+        ;; Noww return the screen-groups
         (move-group-to-screen group screen))))
-;; Noww return the screen-groups
-
 
 (defun activate-ws (ws)
   ;; Let's make sure you can only active if theres nothing currently active
   (let ((active (slot-value *metaspace* :active-ws))
         (meta-screen (slot-value *metaspace* :screen)))
-    (if (null active)
-        (progn
-          ;; First step is moving groups
-          (if (mapcar #'(lambda (x)
-                          (move-group-to-screen x meta-screen))
-                      (ws-groups ws))
-              (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                    (ws-screen ws)))
-          ;; Now we actually set the workspace to active
-          (setf (ws-active-p ws) t
-                (slot-value *metaspace* :active-ws) ws)
-          ;; (gmove (car (ws-groups ws)))
-          (gnext)))))
-
-;; Okay, so we're having an issue
-;; Not every group is getting moved correctly
-(defun activate-ws (ws)
-  ;; Let's make sure you can only active if theres nothing currently active
-  (let ((active (slot-value *metaspace* :active-ws))
-      (meta-screen (slot-value *metaspace* :screen)))
     (if (null active)
         (progn
           ;; First step is moving groups
@@ -113,10 +80,7 @@
                                 (ws-screen ws))
           ;; Now we actually set the workspace to active
           (setf (ws-active-p ws) t
-                (slot-value *metaspace* :active-ws) ws)
-          ;; (gmove (car (ws-groups ws)))
-          ))))
-
+                (slot-value *metaspace* :active-ws) ws)))))
 
 (defun deactivate-ws ()
   "Deactivates the current ws"
@@ -124,35 +88,16 @@
     (if active-ws
         (progn
           ;; First step is moving groups back
-          (if (let ((sr (ws-screen active-ws)))
-                (mapcar #'(lambda (x) (move-group-to-screen x sr))
-                        (screen-groups (slot-value *metaspace* :screen))))
-              ;; (ws-groups active-ws)) ;; This is empty
-              (move-group-to-screen (slot-value *metaspace* :meta-group)
-                                    (slot-value *metaspace* :screen)))
-          ;; Now we actually set the workspace to deactive
-          (setf (ws-active-p active-ws) nil
-                (slot-value *metaspace* :active-ws) nil)))))
-
-(defun deactivate-ws ()
-  "Deactivates the current ws"
-  (let ((active-ws (slot-value *metaspace* :active-ws)))
-    (if active-ws
-        (progn
-          ;; First step is moving groups back
-          ;; (if (let ((sr (ws-screen active-ws)))
           (dolist (x (screen-groups (slot-value *metaspace* :screen)))
             (move-group-to-screen x (ws-screen active-ws)))
-          ;; (ws-groups active-ws)) ;; This is empty
           (move-group-to-screen (slot-value *metaspace* :meta-group)
                                 (slot-value *metaspace* :screen))
-          ;; Now we actually set the workspace to deactive
+          ;; Now we actually set the workspace to inactive
           (if (member (slot-value *metaspace* :meta-group)
                       (screen-groups (slot-value *metaspace* :screen)))
               (setf (ws-active-p active-ws) nil
                     (slot-value *metaspace* :active-ws) nil)
               (deactivate-ws))))))
-
 
 (defun init-workspace (screen name id)
   (let ((ws (make-instance 'workspace)))
@@ -175,12 +120,49 @@
     (defparameter *metaspace* (make-meta-space))
     (activate-ws ws)))
 
+(defun find-group-by-id (id group-list)
+  (car (stable-sort
+        (copy-seq group-list)
+        #'(lambda (x y)
+            (< (abs (- (group-number x) id))
+               (abs (- (group-number y) id)))))))
+
+
 (defun switch-to-group-from-id (id group-list)
-  (switch-to-group
-   (car (stable-sort (copy-seq group-list)
-                     #'(lambda (x y)
-                         (< (abs (- (group-number x) id))
-                            (abs (- (group-number y) id))))))))
+  (switch-to-group (find-group-by-id id group-list)))
+
+(defun workspace-switch (ws &optional next-group)
+  "Allows for an alternative next-group"
+  (let ((group-list (screen-groups (slot-value *metaspace* :screen)))
+        (active-ws (slot-value *metaspace* :active-ws))
+        (id (group-number (current-group))))
+    (if (null (equal ws active-ws))
+        (progn
+          (if active-ws
+              (deactivate-ws))
+          (activate-ws ws)
+          (let ((group-list (screen-groups (slot-value *metaspace* :screen))))
+            (if next-group (switch-to-group next-group)
+                (switch-to-group-from-id id group-list))))
+        ;; return active ws
+        (slot-value *metaspace* :active-ws))))
+
+  ;; "Note: This does not actually handle switching groups!"
+  ;; (let ((active-ws (slot-value *metaspace* :active-ws)))
+  ;;   (cond ((null (equal ws active-ws))
+  ;;          (if active-ws
+  ;;              (deactivate-ws))
+  ;;          (activate-ws ws)
+  ;;          (if next-group (switch-to-group next-group))))
+  ;;   (slot-value *metaspace* :active-ws)))
+
+
+
+;; We actually don't used this version because it can't bring groups with it
+(defun switch-to-workspace (ws)
+  ;; Switch to group as long if it's not currently active
+  (workspace-switch ws))
+
 
 (defun switch-to-workspace (ws)
   ;; Switch to group as long if it's not currently active
@@ -195,7 +177,6 @@
           ;;                (sort-groups (current-screen)))
           (let ((group-list (screen-groups (slot-value *metaspace* :screen))))
             (switch-to-group-from-id id group-list))))
-    ;; ))
     ;; return active ws
     (slot-value *metaspace* :active-ws)))
 
@@ -221,12 +202,14 @@
                         screens))
          (p (position (format-group-for-menu (current-group))
                       names :test 'equal :key 'car)))
-    (when-let ((result (second (select-from-menu (current-screen) names "Select: " (if (null p) 0 p)))))
+    (when-let ((result (second (select-from-menu (current-screen)
+                                                 names "Select: " (if (null p) 0 p)))))
       (if (listp result)
           (progn (switch-to-workspace (car result))
                  (switch-to-group (cdr result)))
           (switch-to-workspace result)))))
 
+;; Helpful workspace functions
 (defun screen-workspace (screen)
   "This actually has different behavior depending on whether or not
 a screen is currently active or not. Technically the current screen should
@@ -234,12 +217,11 @@ return a metaspace, but for our purposes that would be far too confusing.
 Thus, we will return the active-ws for the current-screen, and the active-ws
 for the screen on the ws"
   (let ((active-ws (slot-value *metaspace* :active-ws)))
-    (if (equal screen (current-screen))
+    (if (equal screen (slot-value *metaspace* :screen))
         active-ws
         (loop for ws in (hash-table-alist workspace-hash)
               if (eql screen (ws-screen (cdr ws)))
                 return (cdr ws)))))
-
 
 (defun group-workspace (group)
   (if group
@@ -251,12 +233,60 @@ for the screen on the ws"
                     return (cdr ws))))))
 
 (defun window-workspace (window)
-  (if window (group-workspace (window-group window))))
+  (if (or (equal (type-of window) 'tile-window)
+         (equal (type-of window) 'float-window))
+      (group-workspace (window-group window))))
 
-;; (time (group-workspace (current-group)))
-;; (time (group-workspace (car (ws-groups (gethash 1 workspace-hash)))))
+;; Creates a set of hooks to be used in the case of focus not being in the right workspace
+(defun group-workspace-check (current-group last-group)
+  "Hooks into focus-group-hook"
+  (declare (ignorable last-group))
+  (let ((ws (group-workspace current-group)))
+    (if (not (equal (current-ws) ws))
+        (workspace-switch ws current-group))))
 
+(defun window-workspace-check (current-window last-window)
+  "Hooks into focus-window-hook"
+  (declare (ignorable last-window))
+  (cond ((null current-window) nil)
+        (current-window
+         (let ((ws (group-workspace (window-group current-window))))
+           (if (not (equal (current-ws) ws))
+               (workspace-switch ws (window-group current-window)))))))
 
+(defun frame-workspace-check (current-frame last-frame)
+  "Hooks into focus-frame-hook"
+  (declare (ignorable last-frame))
+  (let ((current-window (frame-window current-frame)))
+    (cond ((null current-window) nil)
+          (current-window
+           (let ((ws (group-workspace (window-group current-window))))
+             (if (not (equal (current-ws) ws))
+                   (workspace-switch ws (window-group current-window))))))))
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Redefine screen commands used in stumpwm to properly set the focus when accessing
+;; windows from a different screen
+
+;; This is also much cleaner than what is used by stumpwm
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+(defun workspace-set-focus (workspace window)
+  (workspace-switch workspace (window-group window))
+  (xlib:set-input-focus *display* (window-xwin window) :POINTER-ROOT))
+
+(defun screen-set-focus (screen window)
+  (declare (ignorable screen))
+  (workspace-set-focus (group-workspace (window-group window)) window))
+
+(defun switch-to-screen (screen)
+  (workspace-switch (screen-workspace screen)))
+
+(defun workspace-check (current-group last-group)
+  "Hooks into focus-window-hook"
+  (declare (ignorable last-group))
+  (let ((ws (group-workspace current-group)))
+    (if (not (equal (current-ws) ws))
+        (switch-to-workspace ws))))
 
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;

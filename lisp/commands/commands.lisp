@@ -17,6 +17,11 @@
 
 (ql:quickload :swank-client)
 
+;; TODO
+;; Add support email/texting?
+;; What else can I do with faster IO?
+;;
+
 (defcommand swank () ()
   (let ((port 4008))
     (swank:create-server :port port :style swank:*communication-style*
@@ -136,6 +141,29 @@
                                   (- (xlib:drawable-height (window-parent win)) height wy))
                                               :cardinal 32))))
 
+(defun pull-window (win &optional (to-frame (tile-group-current-frame (window-group win))) (focus-p t))
+  (unless (not (or (equal (type-of win) 'tile-window)
+                 (equal (type-of win) 'float-window)))
+    (let ((f (window-frame win))
+        (group (window-group win)))
+      (unless (eq (frame-window to-frame) win)
+        (xwin-hide win)
+        (setf (window-frame win) to-frame)
+        (maximize-window win)
+        (when (eq (window-group win) (current-group))
+          (xwin-unhide (window-xwin win) (window-parent win)))
+        ;; We have to restore the focus after hiding.
+        (when (eq win (screen-focus (window-screen win)))
+          (screen-set-focus (window-screen win) win))
+        (frame-raise-window group to-frame win focus-p)
+        ;; if win was focused in its old frame then give the old
+        ;; frame the frame's last focused window.
+        (when (eq (frame-window f) win)
+          ;; the current value is no longer valid.
+          (setf (frame-window f) nil)
+          (frame-raise-window group f (first (frame-windows group f)) nil))))))
+
+
 (defun reset-all-windows ()
   "Reset the size for all tiled windows"
   (let ((windows (mapcan (lambda (g)
@@ -146,6 +174,9 @@
                   (maximize-window w))) windows)))
 
 ;; --- Winlist with every open window ----------------------------------------
+;; TODO redefine window-group with unwind protection
+;; (defun window-group ())
+
 (defcommand all-windowlist (&optional (fmt *window-format*) window-list) (:rest)
   (let ((window-list (or window-list
                       (mapcar #'(lambda (x)
@@ -230,6 +261,21 @@ window along."
    ;;     (run-hook 'frame-gap-on)
    ;;     (run-hook 'frame-gap-off))
    (reset-all-windows))
+
+(defun show-group-name (&optional current-group last-group)
+  (declare (ignorable current-group last-group))
+  (message (group-name (current-group))))
+
+(let ((active nil))
+  (defcommand show-group-toggle () ()
+    (if active
+        (progn (setf active nil)
+               (remove-hook stumpwm:*focus-group-hook*
+                            'show-group-name))
+        (progn (setf active t)
+               (add-hook stumpwm:*focus-group-hook*
+                         'show-group-name)))))
+
 
 ;; Swank Commands
 
@@ -346,11 +392,11 @@ window along."
 
 (defcommand inc-volume () ()
   (print (cl-ppcre:scan-to-strings
-          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a+" 5)))))
+          "\\d+%" (inferior-shell:run/s (format nil "pactl set-sink-volume @DEFAULT_SINK@ +~a%" 5)))))
 
 (defcommand dec-volume () ()
   (print (cl-ppcre:scan-to-strings
-          "\\d+%" (inferior-shell:run/s (format nil "amixer sset Master ~a-" 5)))))
+          "\\d+%" (inferior-shell:run/s (format nil "pactl set-sink-volume @DEFAULT_SINK@ -~a%" 5)))))
 
 (defcommand reset-audio () ()
   (run-shell-command "bash /home/vagabond/libraries/builds/zenbook-pro-ux501vw-sound-fix/fix-audio.sh"))

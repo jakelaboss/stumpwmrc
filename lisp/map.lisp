@@ -43,6 +43,17 @@
 (define-key *root-map* (kbd "C-s") "google")
 (define-key *root-map* (kbd "i") "imdb")
 
+(defun toggle-mouse-focus ()
+  (cond ((equal *mouse-focus-policy* :sloppy)
+         (setf *mouse-focus-policy* :click)
+         (message "click"))
+        ((equal *mouse-focus-policy* :click)
+         (setf *mouse-focus-policy* :sloppy)
+         (message "sloppy"))
+        (t (message "State not recognized"))))
+
+(defcommand toggle-mouse-policy () ()
+  (toggle-mouse-focus))
 
 (setf *mouse-focus-policy* :sloppy) ;; :click, :ignore, :sloppy
 ;; Sudo Commands ;;
