@@ -31,18 +31,52 @@
 
 ;; Web jump Macro
 (defmacro make-web-jump (name prefix)
-  `(defcommand ,(intern name) (sevagabond) ((:rest ,(concatenate 'string name " sevagabond: ")))
-    (substitute #\+ #\Space sevagabond)
-    (run-shell-command (concatenate 'string ,prefix sevagabond))))
+  `(defcommand ,(intern name) (search) ((:rest ,(concatenate 'string name " search: ")))
+     (cond (search
+            (substitute #\+ #\Space search)
+            (run-shell-command (concatenate 'string ,prefix search))))))
 
-(make-web-jump "google" "qutebrowser http://www.google.fr/sevagabond?q=")
-(make-web-jump "imdb" "qutebrowser http://www.imdb.com/find?q=")
-(make-web-jump "stackoverflow" "qutebrowser https://www.stackoverflow.com/find?q=")
+(make-web-jump "google" "firefox-developer-edition --new-tab https://www.google.com/search?q=")
+(make-web-jump "stackoverflow" "firefox-developer-edition --new-tab https://www.stackoverflow.com/find?q=")
 
-(define-key *root-map* (kbd "C-f") "stackoverflow")
-(define-key *root-map* (kbd "C-s") "google")
-(define-key *root-map* (kbd "i") "imdb")
+(load-module "clipboard-history")
 
+(defun poll-selection (&optional (selection :primary))
+  (xlib:convert-selection selection
+                          :utf8_string
+                          (stumpwm::screen-input-window
+                           (stumpwm:current-screen))
+                          :stumpwm-selection))
+
+(defun string-maxlen (s maxlen)
+  (let ((s1 (subseq s 0 (min maxlen (length s)))))
+    (if (string-equal s1 s)
+        s1
+        (stumpwm:concat s1 " ..."))))
+
+(defun replace-special-characters (s)
+  (cl-ppcre:regex-replace-all #\Newline (cl-ppcre:regex-replace-all " +" s "+") "+"))
+
+(defcommand google-from-clipboard () ()
+  (let ((query (inferior-shell:run/s "xclip -o")))
+    (|google|(string-maxlen (replace-special-characters query) 100))))
+
+(defcommand eval-from-clipboard () ()
+  (let ((query (inferior-shell:run/s "xclip -o")))
+    (message "~a" (eval (read-from-string query)))))
+
+(defcommand eval-to-clipboard () ()
+  (restart-case
+      (let* ((query (inferior-shell:run/s "xclip -o"))
+             (result (unwind-protect (eval (read-from-string query)))))
+        (inferior-shell:run/s (format nil "echo \"~a\" | xclip -i -selection \"clipboard\"" result))
+        (message "~a" result))
+    (lambda () nil)))
+
+;; (xlib:convert-selection (poll-selection :primary))
+;; (clipboard-history::basic-get-x-selection :primary)
+;; (clipboard-history:start-clipboard-manager)
+;; (print clipboard-history::*clipboard-history*)
 (defun toggle-mouse-focus ()
   (cond ((equal *mouse-focus-policy* :sloppy)
          (setf *mouse-focus-policy* :click)
@@ -56,19 +90,6 @@
   (toggle-mouse-focus))
 
 (setf *mouse-focus-policy* :sloppy) ;; :click, :ignore, :sloppy
-;; Sudo Commands ;;
-
-
-;; Postgres Commands ;;
-;; (define-sudo-command pg-start "pg_ctl start -D /var/lib/postgres/data")
-;; (define-sudo-command  pg-start "su postgres -c 'pg_ctl start -D /usr/local/pgsql/data -l serverlog'"
-
-
-;; (defun vpn (conf)
-;;   (define-sudo-command vpn (concatenate 'string "openvpn /etc/openvpn/" (concatenate 'string conf ".conf"))))
-
-;; (vpn "Brazil")
-
 
 (defun flat-list (l)
   "Function that 'flatten a list."
