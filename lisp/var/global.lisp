@@ -23,6 +23,8 @@
 ;; (export stumpwm::password)
 (defvar *stumpwm-storage* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/")
 
+(defun store-password (name password)
+  (sosei:pwrite* name (encrypt (concat password (decrypt *salt* *lisp-key*)) *lisp-key*)))
 
 (defvar *lisp-key* (sosei::pread* "keys/key"))
 (defvar *salt* (sosei:pread* "keys/salt"))
