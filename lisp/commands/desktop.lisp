@@ -303,7 +303,7 @@
                               (setf (group-name g) x)
                               (add-group screen x)))))
 
-;; Screw it!
+;; Screw it! We'll do it live
 (defun restore-desktop ()
   (labels ((create-groups (id gname-list)
              (loop for x in gname-list
@@ -323,10 +323,46 @@
         (create-groups 2 '("connections" "ops" "games" "media"))
         (create-groups 3 '("servers" "lisp" "meta" "comms"))
         (create-groups 4 '("head-space" "development" "reading" "music"))
+        (screen-fix)
         (setf (group-name (car (screen-groups ms)))
               (format nil "~a" (gensym "meta")))
         ;; (activate-ws (gethash 4 workspace-hash))
         (switch-to-workspace (gethash 4 workspace-hash))))))
+
+(defun remove-extra-heads ()
+  "Removes the extra heads from every group in the workspace"
+  (flet ((remove-heads (h)
+           (dolist (x (cdr h))
+             (remove-head (car h) x))))
+    (let ((head-alist
+            (mapcar #'(lambda (x)
+                        (cons (ws-screen x)
+                              (remove-if #'(lambda (x)
+                                             (> (head-width x) 2560))
+                                         (screen-heads (ws-screen x)))))
+                    (hash-table-values workspace-hash))))
+
+      (dolist (v (cons (cons (meta-space-screen *metaspace*)
+                             (screen-heads (meta-space-screen *metaspace*)))
+                       head-alist))
+      (remove-heads v)))))
+
+(defun apply-to-all-groups (function)
+  "Removes the extra heads from every group in the workspace"
+    (let ((group-alist
+            (mapcar #'(lambda (x)
+                        (cons (ws-screen x)
+                              (remove-if #'(lambda (x)
+                                             (> (head-width x) 2560))
+                                         (screen-heads (ws-screen x)))))
+                    (hash-table-values workspace-hash))))
+
+      (dolist (v (cons (cons (meta-space-screen *metaspace*)
+                             (screen-heads (meta-space-screen *metaspace*)))
+                       head-alist))
+        (remove-heads v))))
+
+;; (print (dump-group (current-group)))
 
 
 #| (let ((ms (current-screen)))

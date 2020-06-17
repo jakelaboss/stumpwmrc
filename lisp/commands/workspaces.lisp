@@ -1,17 +1,7 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Workspaces
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
-
-
-;; So what's the plan?
-
-;; Create a new class for groups
-
-;; I can either extend the currently existing group system to include work-spaces
-;; Or I can attempt to just redifine the commands that I use
-
-;; I could also rename all groups not in the workspace to be hidden
-;; Define the workspace class and initialization
+;; Defines the workspace class and initialization
 
 (in-package :stumpwm)
 
@@ -127,25 +117,24 @@
             (< (abs (- (group-number x) id))
                (abs (- (group-number y) id)))))))
 
-
 (defun switch-to-group-from-id (id group-list)
   (switch-to-group (find-group-by-id id group-list)))
 
 (defun workspace-switch (ws &optional next-group)
   "Allows for an alternative next-group"
-  (let ((group-list (screen-groups (slot-value *metaspace* :screen)))
-        (active-ws (slot-value *metaspace* :active-ws))
-        (id (group-number (current-group))))
-    (if (null (equal ws active-ws))
-        (progn
-          (if active-ws
-              (deactivate-ws))
-          (activate-ws ws)
-          (let ((group-list (screen-groups (slot-value *metaspace* :screen))))
-            (if next-group (switch-to-group next-group)
-                (switch-to-group-from-id id group-list))))
-        ;; return active ws
-        (slot-value *metaspace* :active-ws))))
+  (cond ((null ws) nil)
+        (t (let ((active-ws (slot-value *metaspace* :active-ws))
+                 (id (group-number (current-group))))
+             (if (null (equal ws active-ws))
+                 (progn
+                   (if active-ws
+                       (deactivate-ws))
+                   (activate-ws ws)
+                   (let ((group-list (screen-groups (slot-value *metaspace* :screen))))
+                     (if next-group (switch-to-group next-group)
+                         (switch-to-group-from-id id group-list))))
+                 ;; return active ws
+                 (slot-value *metaspace* :active-ws))))))
 
   ;; "Note: This does not actually handle switching groups!"
   ;; (let ((active-ws (slot-value *metaspace* :active-ws)))
@@ -155,8 +144,6 @@
   ;;          (activate-ws ws)
   ;;          (if next-group (switch-to-group next-group))))
   ;;   (slot-value *metaspace* :active-ws)))
-
-
 
 ;; We actually don't used this version because it can't bring groups with it
 (defun switch-to-workspace (ws)
@@ -234,7 +221,7 @@ for the screen on the ws"
 
 (defun window-workspace (window)
   (if (or (equal (type-of window) 'tile-window)
-         (equal (type-of window) 'float-window))
+          (equal (type-of window) 'float-window))
       (group-workspace (window-group window))))
 
 ;; Creates a set of hooks to be used in the case of focus not being in the right workspace
@@ -262,7 +249,7 @@ for the screen on the ws"
           (current-window
            (let ((ws (group-workspace (window-group current-window))))
              (if (not (equal (current-ws) ws))
-                   (workspace-switch ws (window-group current-window))))))))
+                 (workspace-switch ws (window-group current-window))))))))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Redefine screen commands used in stumpwm to properly set the focus when accessing
@@ -274,20 +261,13 @@ for the screen on the ws"
   (workspace-switch workspace (window-group window))
   (xlib:set-input-focus *display* (window-xwin window) :POINTER-ROOT))
 
-(defun screen-set-focus (screen window)
-  (declare (ignorable screen))
-  (workspace-set-focus (group-workspace (window-group window)) window))
+(defun screen-fix ()
+  (defun screen-set-focus (screen window)
+    (declare (ignorable screen))
+    (workspace-set-focus (group-workspace (window-group window)) window))
 
-(defun switch-to-screen (screen)
-  (workspace-switch (screen-workspace screen)))
-
-(defun workspace-check (current-group last-group)
-  "Hooks into focus-window-hook"
-  (declare (ignorable last-group))
-  (let ((ws (group-workspace current-group)))
-    (if (not (equal (current-ws) ws))
-        (switch-to-workspace ws))))
-
+  (defun switch-to-screen (screen)
+    (workspace-switch (screen-workspace screen))))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Commands
@@ -295,7 +275,6 @@ for the screen on the ws"
 
 (defcommand ws-init () ()
   (workspace-start))
-
 
 ;; (meta-space-groups *metaspace*)
 ;; (grouplist-all)

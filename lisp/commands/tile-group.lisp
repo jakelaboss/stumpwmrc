@@ -1,6 +1,6 @@
 ;; not sure what went wrong in the last update for stumpwm
 ;; some change to the tile-groups broke window moving,
-;; so I just took thsi code from a previous build
+;; so I just took this code from a previous build
 
 
 ;; Copyright (C) 2003-2008 Shawn Betts
