@@ -4,30 +4,44 @@
 
 (in-package :stumpwm)
 
+;; Redefines sync-keys for new workspace system
+(defun sync-keys ()
+  "Any time *top-map* is modified this must be called."
+  (loop for i in *screen-list*
+        do (xwin-ungrab-keys (screen-focus-window i))
+        do (loop for j in (screen-mapped-windows i)
+                 do (xwin-ungrab-keys j))
+        do (xlib:display-finish-output *display*)
+        do (loop for j in (screen-mapped-windows i)
+                 do (if (find-window j)
+                        (xwin-grab-keys j (window-group (find-window j)))))
+        do (xwin-grab-keys (screen-focus-window i) (screen-current-group i)))
+  (xlib:display-finish-output *display*))
+
 ;; Applications ;;
 (defvar *application-bindings*
-   (let ((m (stumpwm:make-sparse-keymap)))
-     ;; (stumpwm:define-key m (stumpwm:kbd "e") "gnext")
-     (stumpwm:define-key m (stumpwm:kbd "e") "exec sh -c 'primusrun emacsclient -c .'")
-     ;; (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
-     (stumpwm:define-key m (stumpwm:kbd "E") "exec sh -c 'primusrun emacs'")
-     (stumpwm:define-key m (stumpwm:kbd "a") "exec arandr")
-     (stumpwm:define-key m (stumpwm:kbd "v") "pavucontrol")
-     (stumpwm:define-key m (stumpwm:kbd "u") "exec urxvt")
-     (stumpwm:define-key m (stumpwm:kbd "s") "exec rofi -show ssh")
-     (stumpwm:define-key m (stumpwm:kbd "S") "exec steam")
-     (stumpwm:define-key m (stumpwm:kbd "F2") "exec conky")
-     (stumpwm:define-key m (stumpwm:kbd "k") "exec keypass")
-     (stumpwm:define-key m (stumpwm:kbd "K") "exec encryptr")
-     (stumpwm:define-key m (stumpwm:kbd "p") "exec plover")
-     (stumpwm:define-key m (stumpwm:kbd "r") "exec rofi -show drun")
-     (stumpwm:define-key m (stumpwm:kbd "f") "exec primusrun firefox-developer-edition")
-     (stumpwm:define-key m (stumpwm:kbd "F") "exec primusrun firefox-developer-edition")
-     (stumpwm:define-key m (stumpwm:kbd "XF86AudioPlay") "exec spotify")
-     (stumpwm:define-key m (stumpwm:kbd "g") "exec google-chrome-beta")
-     m ; NOTE: this is important
-     ))
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-a") '*application-bindings*)
+  (let ((m (make-sparse-keymap)))
+    ;; (define-key m (kbd "e") "gnext")
+    (define-key m (kbd "e") "exec sh -c 'primusrun emacsclient -c .'")
+    ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
+    (define-key m (kbd "E") "exec sh -c 'primusrun emacs'")
+    (define-key m (kbd "a") "exec arandr")
+    (define-key m (kbd "v") "pavucontrol")
+    (define-key m (kbd "u") "exec urxvt")
+    (define-key m (kbd "s") "exec rofi -show ssh")
+    (define-key m (kbd "S") "exec steam")
+    (define-key m (kbd "F2") "exec conky")
+    (define-key m (kbd "k") "exec keypass")
+    (define-key m (kbd "K") "exec encryptr")
+    (define-key m (kbd "p") "exec plover")
+    (define-key m (kbd "r") "exec rofi -show drun")
+    (define-key m (kbd "f") "exec primusrun firefox-developer-edition")
+    (define-key m (kbd "F") "google-from-clipboard")
+    (define-key m (kbd "XF86AudioPlay") "exec spotify")
+    (define-key m (kbd "g") "exec google-chrome-beta")
+    m))
+
+(define-key *top-map* (kbd "s-a") '*application-bindings*)
 
 (defcommand pavucontrol () ()
   (if (run-commands "exec pavucontrol-qt")
@@ -113,25 +127,23 @@
     m ; NOTE: this is important
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-f") '*frame-bindings*)
+(define-key *top-map* (kbd "s-f") '*frame-bindings*)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Appearance Configuration
 
 (defvar *wallpaper-bindings*
-  (let ((m (stumpwm:make-sparse-keymap)))
-    (stumpwm:define-key m (stumpwm:kbd "o") "set-to-orange")
-    (stumpwm:define-key m (stumpwm:kbd "g") "set-to-green")
-    (stumpwm:define-key m (stumpwm:kbd "G") "set-to-grass")
-    (stumpwm:define-key m (stumpwm:kbd "m") "set-to-mountains")
-    (stumpwm:define-key m (stumpwm:kbd "p") "set-to-purple-mountains")
-    (stumpwm:define-key m (stumpwm:kbd "l") "set-backlight")
+  (let ((m (make-sparse-keymap)))
+    (define-key m (kbd "o") "set-to-orange")
+    (define-key m (kbd "g") "set-to-green")
+    (define-key m (kbd "G") "set-to-grass")
+    (define-key m (kbd "m") "set-to-mountains")
+    (define-key m (kbd "p") "set-to-purple-mountains")
+    (define-key m (kbd "l") "set-backlight")
     m ; NOTE: this is important
     ))
 
-(stumpwm:define-key stumpwm:*top-map* (stumpwm:kbd "s-w") '*wallpaper-bindings*)
-
-;;------------------------------------------------------------------------------------------------------------------------ ;;
+(define-key *top-map* (kbd "s-w") '*wallpaper-bindings*)
 
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
@@ -160,7 +172,7 @@
 (defvar *common-lisp-mode-repl*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "c") "swank")
-    (stumpwm:define-key m (stumpwm:kbd "r") "eval-from-clipboard")
+    (stumpwm:define-key m (stumpwm:kbd "r") "eval-to-clipboard")
     m))
 
 (defvar *common-lisp-mode*
