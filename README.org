@@ -1,0 +1,106 @@
+* File list
+------------
+** init.lisp
+   init file that should syslink to ~/.stumpwmrc
+
+** appearance.lisp
+   Wallpapers, Frame Decorations, Mode-Line, Fonts
+
+** keymap.lisp
+   Keybindings following the mnernomic binding structure. 
+   A = Applications
+   G = Groups
+   F = Frames
+   W = Wallpapers
+   T = Toggle
+
+** load.lisp
+   quicklisp libraries and module loading
+
+** macro.lisp
+   Record your Own Macros
+   Creates an interactive keymap that records all keystrokes and stump commands.
+   These macros can be named and saved into a sosei store.
+
+** map.lisp
+   Mouse policy, some clipboard functions, nothing major
+
+** network.lisp
+   Creates a networking stack based on `netctl`. 
+   Scans for networks via a wireless card, keeps track of known networks, 
+   abstacts away the need to create and edit netctl configs.
+
+** vim.lisp
+   High level vim like commands
+   TODO I should look at making different level keymaps. I think i could get a lot out
+   of the mnernomic system
+
+* Directories
+
+** appearance
+
+** commands
+*** browser.lisp
+Firefox integration with stumpwm.
+Allows searching through open tabs and history. Could use some cleaning up.
+
+*** commands.lisp
+Mostly device specific commands:
+Including swank commands, some extra group commands, brightness, volume, and layout
+
+*** desktop.lisp
+Creates a desktop system:
+The desktop system is a matrix of 4 workspaces with 4 groups each.
+Setup like this:
+| head-space  | development | reading | music |
+| servers     | lisp        | meta    | comms |
+| connections | ops         | games   | media |
+| relax       | browse-main | work    | videos |
+
+Each group contains a different context
+
+*** display.lisp
+Non-functioning attempt at internally storing and managing image/video of each group for the desktop system.
+
+*** emacs.lisp
+Tiny emacs function to start it with a daemon.
+
+*** golden-ratio.lisp
+attempt at recreating the golden-ratio system from emacs in stumpwm.
+
+*** multihead.lisp
+For integration with a multiple version of stumpwm on seperate devices.
+This is not a secure way of doing this, as it allows anyone to connect and run lisp code arbitrarily.
+Prefer to `ssh -R _port_ _host_`.
+
+*** remember.lisp
+Different attempt at storing/restoring groups/workspaces
+
+*** screen-commands.lisp
+Old code that redefines screen commands, this is now in workspaces, but perhaps should be moved back here...
+
+*** sudo-backup.lisp
+*** sudo.lisp
+I'll note that this is not the most secure way of doing this, but on the bright side it does require the actual files & keys
+I think the best way to obsure this is actually to only know the key, not the actual sudo password
+
+*** tile-group.lisp
+Redefines some group commands
+
+*** workspaces.lisp
+Defines the workspace system, a high level to interacting with screens.
+
+The main reason this exists is that many applications don't function properly when not on the 
+primary Xorg screen. This would require different enviornment variables on each applications for each screen,
+If even supported. For the most part it is not possible to move applications between screens, so one cannot, for example,
+have multiple firefox windows across different screens. This is functionality that would break a lot of workflows, so the workspace
+system exists to get around these limitations.
+
+** dump
+dumb dump of stuff
+** startup
+*** startup.lisp
+startup shell commands.
+** var
+*** global.lisp
+Global variables

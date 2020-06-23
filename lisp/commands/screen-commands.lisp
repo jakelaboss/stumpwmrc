@@ -21,7 +21,6 @@
 
 
 ;; The first thing we change is focus-window:
-;; We change (screen-set-focus opperates) to 
 ;; We now change the workspace instead of the screen
 (defmethod focus-window (window &optional (raise t))
   "Make the window visible and give it keyboard focus. If raise is t, raise the window."

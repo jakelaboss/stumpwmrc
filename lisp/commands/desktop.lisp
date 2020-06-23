@@ -319,7 +319,7 @@
         (create-new-workspace "screen-2")
         (create-new-workspace "screen-3")
         (create-new-workspace "screen-4")
-        (create-groups 1 '("relax" "brose-main" "work" "videos"))
+        (create-groups 1 '("relax" "browse-main" "work" "videos"))
         (create-groups 2 '("connections" "ops" "games" "media"))
         (create-groups 3 '("servers" "lisp" "meta" "comms"))
         (create-groups 4 '("head-space" "development" "reading" "music"))
