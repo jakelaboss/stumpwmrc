@@ -1,6 +1,6 @@
 ;; Global Variables
 (in-package :stumpwm)
-(ql:quickload '(:hyperluminal-mem :lparallel :sosei))
+(ql:quickload '(:hyperluminal-mem :lparallel :sosei :s-base64))
 
 (defvar *pg-data* "/var/lib/postgres/data")
 (defvar *useless-gaps-size* 10)
@@ -30,5 +30,6 @@
 (defvar *salt* (sosei:pread* "keys/salt"))
 (defvar *lisp-password* (sosei:pread* "keys/password"))
 (defvar *root-password* (sosei:pread* "keys/root"))
+(defparameter *postgres-password* (sosei:pread* "keys/postgres"))
 
 (defvar *transient-border-width* 2)

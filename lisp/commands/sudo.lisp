@@ -54,7 +54,7 @@
 
 (defun encrypt (plaintext key)
   (let ((cipher (get-cipher key))
-      (msg (ironclad:ascii-string-to-byte-array plaintext)))
+        (msg (ironclad:ascii-string-to-byte-array plaintext)))
     (ironclad:encrypt-in-place cipher msg)
     (ironclad:octets-to-integer msg)))
 
@@ -64,9 +64,20 @@
 
 (defun decrypt (ciphertext-int key)
   (let ((cipher (get-cipher key))
-      (msg (ironclad:integer-to-octets ciphertext-int)))
+        (msg (ironclad:integer-to-octets ciphertext-int)))
     (ironclad:decrypt-in-place cipher msg)
     (coerce (mapcar #'code-char (coerce msg 'list)) 'string)))
+
+(defun base64 (ciphertext-int key)
+  "Convert a password into base64 format."
+  (let ((cipher (get-cipher key))
+        (msg (ironclad:integer-to-octets ciphertext-int)))
+    (ironclad:decrypt-in-place cipher msg)
+    (with-output-to-string (out)
+      (s-base64:encode-base64-bytes (remove-from-end msg *salt-length*) out))))
+
+;; This is fine to memoize
+(sosei:memoize-symbol 'base64)
 
 ;; Example decrypt from file
 ;; (with-open-file (s "filename")
@@ -75,8 +86,13 @@
 (defvar *salt-length* (length (decrypt *salt* *lisp-key*)))
 
 (defun sudo-password () (remove-from-end (decrypt *lisp-password* *lisp-key*) *salt-length*))
+(defun sudo-base64 () (base64 *lisp-password* *lisp-key*))
 
 (defun root-password () (remove-from-end (decrypt *root-password* *lisp-key*) *salt-length*))
+(defun root-base64 () (base64 *root-password* *lisp-key*))
+
+(defun postgres-password () (remove-from-end (decrypt *postgres-password* *lisp-key*) *salt-length*))
+(defun postgres-base64 () (base64 *postgres-password* *lisp-key*))
 
 (defun check-password (pass)
   (equalp *lisp-password*
@@ -85,16 +101,16 @@
 (defun sudo-run (command)
   (if (stringp command)
       (inferior-shell:run/ss (format nil
-                                     "echo \"~a\" | sudo -S sh -c '~a'"
-                                     (sudo-password)
+                                     "echo \"~a\" | base64 -d | sudo -S sh -c '~a'"
+                                     (sudo-base64)
                                      command))
       (error "Command not of type: String")))
 
 (defun sudo-command (command)
   (if (stringp command)
       (inferior-shell:run/ss (format nil
-                                     "echo \"~a\" | sudo -S sh -c '~a'"
-                                     (sudo-password)
+                                     "echo \"~a\" | base64 -d | sudo -S sh -c '~a'"
+                                     (sudo-base64)
                                      command))
       (error "Command not of type: String")))
 
@@ -135,7 +151,6 @@
 
 (defcommand send-sudo-password () ()
   (window-send-string (concat (sudo-password) (string #\Newline))))
-
 
 (defcommand send-root-password () ()
   (window-send-string (concat (root-password) (string #\Newline))))
