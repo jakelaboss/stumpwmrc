@@ -1,4 +1,7 @@
 
+
+;;; Link to issue: https://forums.developer.nvidia.com/t/cant-get-4k-60hz-over-hdmi-2-0/39529/4
+
 ;; ;; Head Configuration
 ;; (progn
 ;; ;;   ;; This is run so that extrearnal monitors can be recognized

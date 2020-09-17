@@ -43,7 +43,7 @@
 
 ;; Sudo Commands ;;
 (define-key *top-map* (kbd "s-i") "send-sudo-password")
-(define-key *top-map* (kbd "s-I") "send-root-password")
+(define-key *top-map* (kbd "s-I") "send-github-token")
 
 (define-key *top-map* (kbd "F1") "mute-toggle")
 (define-key *top-map* (kbd "F2") "dec-volume")
@@ -52,5 +52,4 @@
 ;; Browser Commands ;;
 (define-key *top-map* (kbd "F1") "mute-toggle")
 (define-key *top-map* (kbd "F2") "dec-volume")
-(define-key *top-map* (kbd "S-C-w") "eval (print 'hello)")
 

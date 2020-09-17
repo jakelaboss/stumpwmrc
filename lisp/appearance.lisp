@@ -18,8 +18,8 @@
 
 (defun check-emacs ()
   (if (cl-ppcre:scan "emacs"
-                  (inferior-shell:run/s "ps aux"))
-   t nil))
+                     (inferior-shell:run/s "ps aux"))
+      t nil))
 
 (defparameter *wallpapers-4k* "/home/vagabond/libraries/wallpapers/4k/")
 (defparameter *wallpapers-desktop* "/home/vagabond/libraries/wallpapers/desktop/")
@@ -38,16 +38,12 @@
                                                *green* "hnBvq40.jpg " ; Cascades
                                                )))
 
-
-
 (defmacro set-wallpaper (pic-list)
   `(stumpwm:run-shell-command
     (concatenate 'string "feh --bg-fill "
                  ,@(mapcan #'(lambda (x) (if (stringp x) (list x "\" ")
                                              (list "\"" x)))
                            pic-list))))
-
-;; (ql:quickload :parse-number)
 
 (defun get-monitor-count ()
   (parse-integer (subseq (inferior-shell:run/s "xrandr --listmonitors") 10 11)))
@@ -63,8 +59,8 @@
                               *wallpapers-desktop* "green/mountains/29 - zibIfl0.jpg" ; moutains
                               *green* "RePIDAe.jpg" ; Pond
                               *green* "hnBvq40.jpg")))) ; Cascades
-  ;; (if (check-emacs)
-  ;;     (set-emacs-theme 'green)))
+;; (if (check-emacs)
+;;     (set-emacs-theme 'green)))
 
 (defcommand set-to-orange () ()
   (defparameter *mode-line-foreground-color* "darkorange")
@@ -191,6 +187,18 @@
 (defun symb (&rest args)
   (values (intern (apply #'mkstr args))))
 
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Screenshots
+
+(defun take-screenshot ()
+  (run-shell-command "scrot -s 'Desktop/%Y-%m-%d-%s.png'"))
+
+(defcommand screenshot () ()
+  (take-screenshot))
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Compton
 (defun start-compton (&optional (active-transparancy nil) (passive-transparancy nil))
   (stumpwm:run-shell-command "pkill compton")
   (sleep .5)
@@ -202,14 +210,11 @@
           (stumpwm:run-shell-command
            (concat "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --unredir-if-possible"
                    "--vsync opengl-oml --glx-no-stencil --xrender-sync-fence --glx-swap-method undefined "
-                   "--glx-no-rebind-pixmap -menu-opacity=0.8 --inactive-opacity-override -e .8"
-                   ))
+                   "--glx-no-rebind-pixmap -menu-opacity=0.8 --inactive-opacity-override -e .8"))
           (stumpwm:run-shell-command
            (concat "compton -CGb --no-fading-destroyed-argb --no-fading-openclose --unredir-if-possible "
                    "--vsync opengl-oml --glx-no-stencil --xrender-sync-fence --glx-swap-method undefined "
-                   "--glx-no-rebind-pixmap"
-                   )))))
-
+                   "--glx-no-rebind-pixmap")))))
 
 (defcommand compton (active-op passive-op) ((:y-or-n "Active transparancy on?: ") (:y-or-n "Passive transparrancy on?: "))
   (start-compton active-op passive-op))

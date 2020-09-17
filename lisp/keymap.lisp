@@ -114,6 +114,7 @@
     (define-key m (kbd "W") "all-windowlist")
     (define-key m (kbd "e") "browser-menu")
     (define-key m (kbd "E") "browser-history")
+    (define-key m (kbd "s") "screenshot")
     (define-key m (kbd "R") "title")
     (define-key m (kbd "b") "balance-frames")
     (define-key m (kbd "c") "toggle-center-frame")

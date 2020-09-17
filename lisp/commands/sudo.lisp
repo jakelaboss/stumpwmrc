@@ -94,6 +94,8 @@
 (defun postgres-password () (remove-from-end (decrypt *postgres-password* *lisp-key*) *salt-length*))
 (defun postgres-base64 () (base64 *postgres-password* *lisp-key*))
 
+(defun github-token () (remove-from-end (decrypt *github-token* *lisp-key*) *salt-length*))
+
 (defun check-password (pass)
   (equalp *lisp-password*
           (encrypt (concat pass (decrypt *salt* *lisp-key*)) *lisp-key*)))
@@ -154,3 +156,6 @@
 
 (defcommand send-root-password () ()
   (window-send-string (concat (root-password) (string #\Newline))))
+
+(defcommand send-github-token () ()
+  (window-send-string (concat (github-token) (string #\Newline))))

@@ -26,10 +26,13 @@
 (defun store-password (name password)
   (sosei:pwrite* name (encrypt (concat password (decrypt *salt* *lisp-key*)) *lisp-key*)))
 
+
+(defvar *github-token* (sosei::pread* "keys/github-token"))
 (defvar *lisp-key* (sosei::pread* "keys/key"))
 (defvar *salt* (sosei:pread* "keys/salt"))
 (defvar *lisp-password* (sosei:pread* "keys/password"))
 (defvar *root-password* (sosei:pread* "keys/root"))
 (defparameter *postgres-password* (sosei:pread* "keys/postgres"))
 
-(defvar *transient-border-width* 2)
+(defparameter *transient-border-width* 1)
+(defparameter *window-border-style* :thin)

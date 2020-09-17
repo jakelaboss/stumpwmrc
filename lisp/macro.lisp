@@ -177,19 +177,11 @@ Be aware that these commands won't require a prefix to run."
 (def-interactive-keymap)
 
 (defcommand keyboard-interactive-reset () ()
-  (def-interactive-keymap))
+  (when (def-interactive-keymap) (message "Keyboard has been reset.")))
 
 (defun save-macro-command (filename)
   (sosei:pwrite* filename *keybindings-commands*))
 
-;; (save-macro-command "group-two")
-;; (sosei:pread* "group-two")
-
-;; (defun this ()
-;;   (define-key map key-seq )
-;;   )
-
-;; (define-interactive-keymap (save-macro-definition ))
 
 (defcommand end-macro-def () ()
   (if (member 'key-recorder-fn *key-press-hook* :test 'equal)

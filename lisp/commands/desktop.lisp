@@ -49,23 +49,35 @@
                       (format nil "scrot -o -q 50 ~a" p))
                   p))))))
 
+(defun image-text (image-path text)
+  (let ((px (* (length text) 55)))
+    (format nil
+            "convert ~a -pointsize 200 -fill white -draw 'text ~a,1000 \"~a\"' ~a"
+            image-path
+            (- 1920 px)
+            text
+            image-path)))
+
 (defun group-picture ()
   (let ((id (group-image-id (current-group)))
-      (p (group-image-format (current-group))))
+        (p (group-image-format (current-group))))
     (when
         (setf (gethash id *group-images*)
-              (progn (run-shell-command
-                      (let ((l (length (group-heads (current-group)))))
-                        (cond ((> l 2)
-                               (format nil "scrot -o -q 50 ~a; convert ~a -gravity West -chop 1920x0 -gravity East -chop 1920x0 ~a"
-                                       p p p))
-                              ((= l 2)
-                               (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
-                                       p p p))
-                              ((= l 1)
-                               (format nil "scrot -o -q 50 ~a" p))))
-                        p))))))
-
+              (progn
+                (let ((l (length (group-heads (current-group)))))
+                  (cond ((> l 2)
+                         (run-shell-command
+                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity West -chop 1920x0 -gravity East -chop 1920x0 ~a"
+                                  p p p)))
+                        ((= l 2)
+                         (run-shell-command
+                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
+                                  p p p)))
+                        ((= l 1)
+                         (run-shell-command
+                          (format nil "scrot -o -q 50 ~a;~a" p
+                                  (image-text p (group-name (current-group)))))))
+                  p))))))
 
 (defvar *group-storage-path* (concat *stumpwm-storage* "groups/"))
 
@@ -226,7 +238,10 @@
 
 ;; (parse-image-name (window-name (nth 1 (group-windows (current-group)))))
 
-(define-interactive-keymap desktop-ws (:on-exit #'desktop-switch)
+(define-interactive-keymap desktop-ws (:on-exit #'(lambda ()
+                                                    (set-focus-color "darkcyan")
+                                                    (defparameter *window-border-style* :thin)
+                                                    (desktop-switch)))
   ;; Movement Mapping ;;
   ((kbd "j") "move-focus down")
   ((kbd "h") "move-focus left")
@@ -234,7 +249,6 @@
   ((kbd "l") "move-focus right")
   ((kbd ";") "colon")
   ((kbd ":") "eval"))
-
 
 (defun space-this (n)
   (move-group-to-screen (slot-value *metaspace* :meta-group)
@@ -252,6 +266,15 @@
       (display-images)))
 ;; (sleep 10)
 
+
+#|
+Thoughts:
+I could change the border width and color when moving to the desktop group to more easily show which group is active.
+I could also display text on each screenshot with the name of each group.
+
+
+|#
+
 ;; (move-group-to-screen (slot-value *metaspace* :meta-group)
 ;;                       (ws-screen (current-ws))))
 
@@ -260,6 +283,8 @@
 
 (defcommand display-ws () ()
   (space-this 4)
+  (set-focus-color "white")
+  (defparameter *window-border-style* :thick)
   (desktop-ws))
 
 (defcommand group-update-picture () ()
@@ -284,13 +309,12 @@
     (with-open-file (s "desktop" :direction :output)
       (write (loop for ws in hs
                    collect (list (ws-name ws) (ws-number ws)
-                              (loop for g in (screen-groups
-                                             (if (ws-active-p ws) (current-screen)
-                                                 (ws-screen ws)))
-                                    collect (dump-group g))))
+                                 (loop for g in (screen-groups
+                                                 (if (ws-active-p ws) (current-screen)
+                                                     (ws-screen ws)))
+                                       collect (dump-group g))))
              :stream s))))
 
-;; (store-desktop)
 
 (defun subseq-from-end (sequence end)
   (reverse (subseq (reverse sequence) 0 end)))

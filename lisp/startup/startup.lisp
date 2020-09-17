@@ -10,6 +10,9 @@
 (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
 (stumpwm:run-shell-command "xmodmap ~/.Xmodmap");; Set Brackets to Parans
 (stumpwm:run-shell-command "libinput-gestures-setup start")
+
+(defcommand home-dual () ()
+  (run-shell-command "./~/.screenlayout/home-dual.sh"))
 ;; ;;   )
 
 ;; (stumpwm:run-shell-command "set-font -m 8859-2")
@@ -130,4 +133,4 @@
 (defcommand keyboard-reset () ()
   (reset-keyboard))
 
-(run-shell-command "libinput-gestures-setup start")
+;; (run-shell-command "libinput-gestures-setup start")

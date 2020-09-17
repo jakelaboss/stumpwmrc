@@ -35,6 +35,13 @@
   (:meta-group (car (screen-groups (current-screen))))
   (:active-ws nil))
 
+(defcommand refresh-all-heads () ()
+  (mapcar (lambda (screen)
+            (head-force-refresh screen
+                                (make-screen-heads screen (screen-root screen))))
+          (cons (meta-space-screen *metaspace*)
+                (mapcar #'ws-screen (hash-table-values workspace-hash)))))
+
 (defun move-group-to-screen (group screen)
   (let ((g group)
       (cs (group-screen group)))

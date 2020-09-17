@@ -4,16 +4,10 @@
 
 ;; Emacs Commands
 
-;; (stumpwm:defcommand eshell () ()
-;;                     (stumpwm::send-meta-key (stumpwm:current-screen) (stumpwm:meta SPC))
-;;                     (stumpwm::send-meta-key (stumpwm:current-screen) (stumpwm:window-send-string "")))
-
 (in-package :stumpwm)
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Swank Server
-;; (load "/home/vagabond/.emacs.d/elpa/slime-20170209.1240/swank-loader.lisp")
-;; (swank-loader:init)
 
 (ql:quickload :swank-client)
 
@@ -179,20 +173,20 @@
 
 (defcommand all-windowlist (&optional (fmt *window-format*) window-list) (:rest)
   (let ((window-list (or window-list
-                      (mapcar #'(lambda (x)
-                                  (cons (window-name x)
-                                        (cons (window-number x)
-                                              (window-group x))))
-                              (sort-windows-by-number
-                               (screen-windows (current-screen)))))))
+                         (mapcar #'(lambda (x)
+                                     (cons (window-name x)
+                                           (cons (window-number x)
+                                                 (window-group x))))
+                                 (sort-windows-by-number
+                                  (screen-windows (current-screen)))))))
     (if (null window-list)
         (message "No Managed Windows")
         ;; (let ((window (select-window-from-menu window-list fmt)))
         (let* ((win-cons (select-from-menu (current-screen) window-list))
                (window
                  (select-window-by-number
-                        (cadr win-cons)
-                        (cddr win-cons))))
+                  (cadr win-cons)
+                  (cddr win-cons))))
           (if (null win-cons) (throw 'error :abort)
               (progn
                 (switch-to-group (cddr win-cons))
@@ -509,7 +503,6 @@ window along."
 
 (defcommand toggle-center-frame () ()
   (center-frame *center-scale*))
-
 
 ;; (defcommand interpret-swipe ()
 ;;     (if (cl-ppcre:scan "firefox"

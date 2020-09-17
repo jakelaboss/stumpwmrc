@@ -96,6 +96,8 @@ If even supported. For the most part it is not possible to move applications bet
 have multiple firefox windows across different screens. This is functionality that would break a lot of workflows, so the workspace
 system exists to get around these limitations.
 
+I think the next step with the workspace system
+
 ** dump
 dumb dump of stuff
 ** startup
