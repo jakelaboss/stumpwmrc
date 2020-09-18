@@ -58,7 +58,8 @@
       (set-wallpaper (*green* "7162209cbe40aeeba705870210e5eb7d.jpg" ; Forest
                               *wallpapers-desktop* "green/mountains/29 - zibIfl0.jpg" ; moutains
                               *green* "RePIDAe.jpg" ; Pond
-                              *green* "hnBvq40.jpg")))) ; Cascades
+                              *green* "hnBvq40.jpg")))
+  (set-room-state forest-values)) ; Cascades
 ;; (if (check-emacs)
 ;;     (set-emacs-theme 'green)))
 
@@ -71,7 +72,8 @@
                            *orange* "p6qa5fP.jpg" ; Sparks
                            *orange* "vkTJUKA.jpg" ; Space
                            ;; *green* "hnBvq40.jpg " ; Cascades
-                           )))
+                           ))
+  (set-room-state sunset-values))
 ;; (if (check-emacs)
 ;;     (set-emacs-theme 'darktooth)))
 
@@ -82,7 +84,8 @@
   (set-wallpaper (
                   *mountains* "Kd6MY6P.jpg"
                   *mountains* "EBSB15k.jpg"
-                  *mountains* "ChfasKD.jpg")))
+                  *mountains* "ChfasKD.jpg"))
+  (set-room-state nebula-values))
 ;; (if (check-emacs)
 ;; (set-emacs-theme 'cherry-blossom)))
 ;; (set-emacs-theme 'cherry-blossom))
@@ -95,7 +98,8 @@
                         *neo* "62 - VYyoVxi.jpg" ;; galaxy
                         *neo* "17 - X95BVbg.jpg" ;; koan sound
                         *neo* "neo/21 - SJkkVGI.png"  ;; beach
-                        )))
+                        ))
+  (set-room-state nebula-values))
 
 (defcommand set-to-mountains () ()
   (defparameter *mode-line-foreground-color* "darkcyan")
@@ -105,7 +109,8 @@
                   *wallpapers-desktop* "green/mountains/hnBvq40.jpg"
                   *wallpapers-desktop* "green/mountains/Y2gvKrI.jpg"
                   *wallpapers-desktop* "green/mountains/5MJjfZC.jpg"
-                  )))
+                  ))
+  (set-room-state forest-values))
 
 (defcommand set-to-streams () ()
   (defparameter *mode-line-foreground-color* "darkcyan")
@@ -114,7 +119,8 @@
                                        *wallpapers-desktop* "water/PxQhp6B.jpg"
                                        *wallpapers-desktop* "water/qLRqQJX.jpg"
                                        *wallpapers-desktop* "water/Y5L3Mpc.jpg"
-                                       )))
+                                       ))
+  (set-room-state forest-values))
 
 (defcommand set-to-grass () ()
   (defparameter *mode-line-foreground-color* "darkcyan")
@@ -124,7 +130,8 @@
                   *wallpapers-desktop* "green/grass/ivan-ovsyannikov-img3.jpg"
                   *wallpapers-desktop* "green/grass/185459.jpg"
                   *wallpapers-desktop* "green/grass/9nalIJG.jpg"
-                  )))
+                  ))
+  (set-room-state forest-values))
 
 (defcommand set-to-garden () ()
   (defparameter *mode-line-foreground-color* "darkcyan")
@@ -134,7 +141,8 @@
                   *wallpapers-desktop* "green/garden/9nalIJG.jpg"
                   *wallpapers-desktop* "green/garden/47ad9357ff8a1e2d57af264422750d0a.jpg"
                   *wallpapers-desktop* "green/garden/landscapes_makoto_shinkai_the_garden_of_words_1366x768_54834.jpg"
-                  )))
+                  ))
+  (set-room-state forest-values))
 
 
 ;; (directory (concat *mountains* "*.jpg"))
