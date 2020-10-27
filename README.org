@@ -80,7 +80,8 @@ Different attempt at storing/restoring groups/workspaces
 Old code that redefines screen commands, this is now in workspaces, but perhaps should be moved back here...
 
 *** sudo.lisp
-Stores the 
+Stores passwords for various things using [[https://en.wikipedia.org/wiki/Threefish][threefish]] cipher with a block size of 1024.
+Unlocking requires the master key to be entered.
 
 *** tile-group.lisp
 Redefines some group commands
