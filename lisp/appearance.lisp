@@ -94,11 +94,11 @@
   (defparameter *mode-line-foreground-color* "purple")
   (stumpwm:set-focus-color *mode-line-foreground-color*)
   (set-wallpaper (
+                  *neo* "17 - X95BVbg.jpg" ;; koan sound
                   *neo* "neo/18 - o9wM9yF.jpg" ;; city
-                        *neo* "62 - VYyoVxi.jpg" ;; galaxy
-                        *neo* "17 - X95BVbg.jpg" ;; koan sound
-                        *neo* "neo/21 - SJkkVGI.png"  ;; beach
-                        ))
+                  *neo* "neo/21 - SJkkVGI.png"  ;; beach
+                  *neo* "62 - VYyoVxi.jpg" ;; galaxy
+                  ))
   (set-room-state nebula-values))
 
 (defcommand set-to-mountains () ()
@@ -108,8 +108,7 @@
                   *wallpapers-desktop* "green/mountains/cphIgT0.jpg"
                   *wallpapers-desktop* "green/mountains/hnBvq40.jpg"
                   *wallpapers-desktop* "green/mountains/Y2gvKrI.jpg"
-                  *wallpapers-desktop* "green/mountains/5MJjfZC.jpg"
-                  ))
+                  *wallpapers-desktop* "green/mountains/5MJjfZC.jpg"))
   (set-room-state forest-values))
 
 (defcommand set-to-streams () ()
@@ -118,8 +117,7 @@
   (set-wallpaper (*wallpapers-desktop* "water/cK25Jhp.jpg"
                                        *wallpapers-desktop* "water/PxQhp6B.jpg"
                                        *wallpapers-desktop* "water/qLRqQJX.jpg"
-                                       *wallpapers-desktop* "water/Y5L3Mpc.jpg"
-                                       ))
+                                       *wallpapers-desktop* "water/Y5L3Mpc.jpg"))
   (set-room-state forest-values))
 
 (defcommand set-to-grass () ()
@@ -129,8 +127,7 @@
                   *wallpapers-desktop* "green/grass/qlgQyNU.jpg"
                   *wallpapers-desktop* "green/grass/ivan-ovsyannikov-img3.jpg"
                   *wallpapers-desktop* "green/grass/185459.jpg"
-                  *wallpapers-desktop* "green/grass/9nalIJG.jpg"
-                  ))
+                  *wallpapers-desktop* "green/grass/9nalIJG.jpg"))
   (set-room-state forest-values))
 
 (defcommand set-to-garden () ()
@@ -140,8 +137,7 @@
                   *wallpapers-desktop* "green/garden/7W4gNBN.jpg"
                   *wallpapers-desktop* "green/garden/9nalIJG.jpg"
                   *wallpapers-desktop* "green/garden/47ad9357ff8a1e2d57af264422750d0a.jpg"
-                  *wallpapers-desktop* "green/garden/landscapes_makoto_shinkai_the_garden_of_words_1366x768_54834.jpg"
-                  ))
+                  *wallpapers-desktop* "green/garden/landscapes_makoto_shinkai_the_garden_of_words_1366x768_54834.jpg"))
   (set-room-state forest-values))
 
 

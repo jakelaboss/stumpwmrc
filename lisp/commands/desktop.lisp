@@ -81,22 +81,6 @@
 
 (defvar *group-storage-path* (concat *stumpwm-storage* "groups/"))
 
-;; (map nil
-;;      #'(lambda (screen)
-;;          (map nil
-;;               #'(lambda (group)
-;;                   (if (multi-head?)
-;;                       (remove-head screen
-;;                                    (car (sort (copy-seq (group-heads (current-group)))
-;;                                               #'(lambda (x y)
-;;                                                   (< (+ (head-width x) (head-height x))
-;;                                                      (+ (head-width y) (head-height y)))))))))
-;;               (screen-groups screen)))
-;;      (cons (current-screen)
-;;           (mapcar #'ws-screen (hash-table-values workspace-hash))))
-;;      (all-screens)
-;;      (remove-head ())
-
 (defun group-state (n)
   (dump-to-file (dump-group (current-group))
                 (form "~agroup-~ax~a" *group-image-path*  n n)))
@@ -122,7 +106,8 @@
             (run-shell-command
              (form "convert ~aS~a*.jpg +append ~aresults:S~a.jpg"
                    *group-image-path* (ws-number ws)
-                   *group-image-path* (ws-number ws)) t))
+                   *group-image-path* (ws-number ws))
+             t))
       (run-shell-command
        (form "convert -reverse ~aresults:S*.jpg -append ~aresults.jpg"
              *group-image-path*
@@ -315,6 +300,125 @@ I could also display text on each screenshot with the name of each group.
                                        collect (dump-group g))))
              :stream s))))
 
+;; (print (dump-group (current-group)))
+
+;; ;; sb-pcl:slot-definition-name
+;; ;; (defmacro store)
+
+;; ;; (ql:quickload :stumpwm)
+
+;; (sosei:generate-generic-storage-method frame)
+;; (sosei:generate-generic-storage-method tile-window)
+;; (sosei:generate-generic-storage-method gdump)
+;; (sosei::generate-generic-storage-struct fdump)
+;; (mapcar #'sb-pcl:slot-definition-name (sb-pcl:class-direct-slots (find-class 'fdump)))
+
+;; (hyperluminal-mem::decl-msize-struct gdump :reader-names
+;;                                      '(number name tree current))
+
+
+;; (defmethod msize-object ((f gdump) index)
+;;   (bt:with-recursive-lock-held (*generic-storage-lock*)
+;;     (hyperluminal-mem:msize* index
+;;                              (slot-value sosei::f 'number) (slot-value sosei::f 'name)
+;;                              (slot-value sosei::f 'tree) (slot-value sosei::f 'current))))
+
+;; (defmethod sosei::msize-object ((f gdump) index)
+;;   ;; (declare (type sosei::mem-size index))
+;;   (sosei::msize* index (gdump-number f)
+;;                  (gdump-name f)
+;;                  (gdump-tree f)
+;;                  (gdump-current f)))
+
+;; (defmethod sosei::msize-object ((f fdump) index)
+;;   ;; (declare (type sosei::mem-size index))
+;;   (sosei::msize* index (fdump-number f) (fdump-x f)
+;;                  (fdump-y f) (fdump-width f) (fdump-height f)
+;;                  (fdump-windows f) (fdump-current f)))
+
+;; (defmethod hyperluminal-mem:mwrite-object ((sosei::f fdump) sosei::ptr sosei::index sosei::end-index)
+;;   (declare (type hyperluminal-mem:mem-size sosei::index sosei::end-index))
+;;   (bordeaux-threads:with-recursive-lock-held (sosei::*generic-storage-lock*)
+;;     (hyperluminal-mem:mwrite* sosei::ptr sosei::index sosei::end-index
+;;                               (fdump-number sosei::f) (fdump-x sosei::f)
+;;                               (fdump-y sosei::f) (fdump-width sosei::f)
+;;                               (fdump-height sosei::f) (fdump-windows sosei::f)
+;;                               (fdump-current sosei::f))))
+
+;; (sosei:pwrite* "current-group" (type= (classed-p (class-of (dump-group (current-group))) structure-class)))
+
+;; (sosei:pwrite* "current-group" (dump-group (current-group)))
+
+;; (let ((f (current-frame)))
+;;   (list (slot-value f 'number) (slot-value f 'x)
+;;         (slot-value f 'y) (slot-value f 'width)
+;;         (slot-value f 'height) (sosei::msize 0 (slot-value f 'window))))
+
+
+;; (sosei:msize 0 (current-frame))
+
+;; (sosei:generate-generic-storage-method tile-window)
+;; (sosei:generate-generic-storage-method head)
+;; (sosei:generate-generic-storage-method group)
+;; (sosei:generate-generic-storage-method tile-group)
+
+
+;; (sosei:msize 0 (eval `(sosei:generate-generic-storage-method
+;;                        ,(class-name (class-of (slot-value (current-frame) 'window))))))
+
+
+;; (sosei:msize 0 (mapcar #'sb-pcl:slot-definition-name (sb-pcl:class-direct-slots (find-class 'head)))
+;;              (class-of (slot-value (slot-value (current-frame) 'window) 'frame)))
+
+;; (hyperluminal-mem::decl-mserializable-struct frame)
+;; (hyperluminal-mem:msize 0 (make-frame :number 1 ))
+
+;; (current-window)
+;; (sosei:msize 0 (current-frame))
+;; ;; okay this errors out. Let's investigate
+;; (class-of (type-of (current-frame)))
+;; ;; -> structure-class *head*
+;; (sosei:generate-generic-storage-method stumpwm::head)
+;; (sosei:msize 0 (slot-value (current-frame) 'name))
+
+;; (sosei:generate-generic-storage-method window)
+
+;; (print (list (slot-value (current-window) 'xwin) (slot-value (current-window) 'width)
+;;        (slot-value (current-window) 'height) (slot-value (current-window) 'x)
+;;        (slot-value (current-window) 'y) (slot-value (current-window) 'gravity)
+;;        (slot-value (current-window) 'group) (slot-value (current-window) 'number)
+;;        (slot-value (current-window) 'parent) (slot-value (current-window) 'title)
+;;        (slot-value (current-window) 'user-title) (slot-value (current-window) 'class)
+;;        (slot-value (current-window) 'type) (slot-value (current-window) 'res)
+;;        (slot-value (current-window) 'role) (slot-value (current-window) 'unmap-ignores)
+;;        (slot-value (current-window) 'state) (slot-value (current-window) 'normal-hints)
+;;        (slot-value (current-window) 'marked) (slot-value (current-window) 'plist)
+;;              (slot-value (current-window) 'fullscreen)))
+
+;; (sosei:msize 0 (current-frame))
+;; (class-of (current-window))
+;; (sosei:pwrite* "test-frame-sosei" (current-frame))
+
+(defmethod hyperluminal-mem:msize-object ((sosei::f tile-window) sosei::index)
+  (hyperluminal-mem:msize* sosei::index (slot-value sosei::f 'frame)
+                           (slot-value sosei::f 'normal-size)))
+
+;; (slot-value (current-frame) :frame-tree)
+;; frame
+
+;; (eval
+;;  `(defmethod sosei::msize-object ((f frame) index)
+;;     (hyperluminal-mem:msize* index
+;;                              ,@(mapcar #'(lambda (x)
+;;                                            `(slot-value f ',x))
+;;                                        (mapcar #'sb-pcl:slot-definition-name
+;;                                                (sb-pcl:class-direct-slots (class-of (current-frame))))))))
+
+;; (type-of (current-frame))
+;; ( (sosei:pread* "test-frame-sosei"))
+;; (inferior-shell:run/s "ls")
+
+;; (store-desktop)
 
 (defun subseq-from-end (sequence end)
   (reverse (subseq (reverse sequence) 0 end)))

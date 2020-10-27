@@ -14,7 +14,6 @@
    (active-p :initform nil :accessor ws-active-p)
    (current-group :accessor ws-current-group)))
 
-
 (defgeneric ws-number (workspace))
 (defgeneric ws-name (workspace))
 (defgeneric ws-current-screen (workspace))

@@ -33,7 +33,31 @@
 
 (defun play-commands (commands)
   "Given a list of commands, send them to the current window."
-  (mapcar 'play-command commands))
+        (mapcar 'play-command commands))
+
+(defun play-commands (commands)
+  "Given a list of commands, send them to the current window."
+  (labels
+      ((play ()
+         (let ((timestamp))
+           (lambda (command)
+             (let ((cmd))
+               (if (listp command)
+                   (progn (if timestamp
+                              (sleep (local-time:timestamp-difference
+                                      (cdr command) timestamp)))
+                          (setf timestamp (cdr command)
+                                cmd (car command)))
+                   (setf cmd command))
+               (cond ((stringp cmd) (eval-command cmd))
+                     (t (send-fake-key (current-window) cmd))))))))
+    (let ((p (play)))
+      (mapcar p commands))))
+
+(defun key-recorder-fn (key key-seq cmd)
+  "Add the key to the bindings recording."
+  (if (stringp cmd)
+      (push (cons cmd (local-time:now)) *keybindings-commands*)))
 
 (defun key-recorder-fn (key key-seq cmd)
   "Add the key to the bindings recording."
@@ -47,6 +71,14 @@
   "Start the key bindings recording."
   (reset-macro)
   (add-hook *key-press-hook* 'key-recorder-fn))
+
+;; (defmacro time-between (input)
+;;   `(let ((n (time (local-time:now))))
+;;      ,input
+;;       (- (local-time:timestamp-difference n (local-time:now)))))
+
+;; there are two ways to do this, one is to measure the start and end time of an execution,
+;; the other is to send timestamps with each keypress
 
 ;; Stop macro is not always called
 (defun stop-macros ()
@@ -146,16 +178,16 @@ Be aware that these commands won't require a prefix to run."
   `(define-interactive-keymap (macro-keymap tile-group) (:on-enter #'start-macros :on-exit #'stop-macros :exit-on nil)
      ;; Obscure keycodes like backspace
      ,@(mapcar #'(lambda (x)
-                 (let ((key (keysym-name->keysym
-                             (subseq (reverse (subseq (reverse (cl-ppcre:scan-to-strings "\".+\"" x)) 1)) 1))))
-                   `((make-key :keysym ,key) ,(format nil "push-keycode ~a" key))))
+                   (let ((key (keysym-name->keysym
+                               (subseq (reverse (subseq (reverse (cl-ppcre:scan-to-strings "\".+\"" x)) 1)) 1))))
+                     `((make-key :keysym ,key) ,(format nil "push-keycode ~a" key))))
                (check-file-for-keys
                 (read-file-into-string "/home/vagabond/quicklisp/dists/quicklisp/software/stumpwm-20181018-git/keysyms.lisp")
                 0))
 
      ;; letters on the keyboard
      ,@(mapcan #'(lambda (x) `(((kbd ,(format nil "~a" x)) ,(format nil "push-key ~a" x))
-                           ((kbd ,(format nil "C-~a" x)) ,(format nil "push-meta-key \"C-~a\"" x))
+                          ((kbd ,(format nil "C-~a" x)) ,(format nil "push-meta-key \"C-~a\"" x))
                           ((kbd ,(format nil "M-~a" x)) ,(format nil "push-meta-key \"M-~a\"" x))))
 
                (loop for x across "aAbBcCdDeEfFgGhHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ123456789'!@#$%^&*[]-+\\(){}|\"" collect x))
@@ -176,12 +208,8 @@ Be aware that these commands won't require a prefix to run."
 
 (def-interactive-keymap)
 
-(defcommand keyboard-interactive-reset () ()
-  (when (def-interactive-keymap) (message "Keyboard has been reset.")))
-
 (defun save-macro-command (filename)
   (sosei:pwrite* filename *keybindings-commands*))
-
 
 (defcommand end-macro-def () ()
   (if (member 'key-recorder-fn *key-press-hook* :test 'equal)
@@ -191,9 +219,17 @@ Be aware that these commands won't require a prefix to run."
   (exit-interactive-keymap 'macro-keymap))
 
 ;; Key definitions
-(define-key *top-map* (kbd "s-(") "macro-keymap")
-(define-key *top-map* (kbd "s-)") "end-macro-def")
-(define-key *top-map* (kbd "s-'")  "replay-macros")
+(defun ensure-keymap-escape ()
+  (define-key *top-map* (kbd "s-(") "macro-keymap")
+  (define-key *top-map* (kbd "s-)") "end-macro-def")
+  (define-key *top-map* (kbd "s-'")  "replay-macros"))
+
+
+(ensure-keymap-escape)
+
+(defcommand keyboard-interactive-reset () ()
+  (when (null (progn (def-interactive-keymap) (ensure-keymap-escape)))
+    (message "Keyboard has been reset.")))
 
 (def-interactive-keymap)
 

@@ -140,6 +140,7 @@
     (define-key m (kbd "G") "set-to-grass")
     (define-key m (kbd "m") "set-to-mountains")
     (define-key m (kbd "p") "set-to-purple-mountains")
+    (define-key m (kbd "n") "set-to-neo")
     (define-key m (kbd "l") "set-backlight")
     m ; NOTE: this is important
     ))

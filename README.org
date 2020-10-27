@@ -79,10 +79,8 @@ Different attempt at storing/restoring groups/workspaces
 *** screen-commands.lisp
 Old code that redefines screen commands, this is now in workspaces, but perhaps should be moved back here...
 
-*** sudo-backup.lisp
 *** sudo.lisp
-I'll note that this is not the most secure way of doing this, but on the bright side it does require the actual files & keys
-I think the best way to obsure this is actually to only know the key, not the actual sudo password
+Stores the 
 
 *** tile-group.lisp
 Redefines some group commands

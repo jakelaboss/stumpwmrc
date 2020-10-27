@@ -10,9 +10,9 @@
 (stumpwm:run-shell-command "xrandr --setprovideroutputsource 3 0")
 (stumpwm:run-shell-command "xrandr --setprovideroutputsource 4 0")
 
-(stumpwm:run-shell-command "xrandr --addmode DVI-I-3-3 1920x1080_60.00")
-(stumpwm:run-shell-command "xrandr --addmode DVI-I-1-1 1920x1080")
-"xrandr --addmode DVI-I-1 1920x1080"
+;; (stumpwm:run-shell-command "xrandr --addmode DVI-I-3-3 1920x1080_60.00")
+;; (stumpwm:run-shell-command "xrandr --addmode DVI-I-1-1 1920x1080")
+;; "xrandr --addmode DVI-I-1 1920x1080"
 
 ;; ;;   ;; creates a virtual device to connect an X11 display to
 (stumpwm:run-shell-command "xrandr --addmode DVI-I-1-1 1920x1080")

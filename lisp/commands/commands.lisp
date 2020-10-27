@@ -62,6 +62,9 @@
 (defcommand eval-from-clipboard () ()
   (unwind-protect (format nil "~a" (unwind-protect (eval-current-selection)))))
 
+(defcommand acpi () ()
+  (inferior-shell:run/s "acpi"))
+
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Rewrite some commands
 ;;------------------------------------------------------------------------------------------------------------------------ ;;

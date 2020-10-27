@@ -11,8 +11,8 @@
 (stumpwm:run-shell-command "xmodmap ~/.Xmodmap");; Set Brackets to Parans
 (stumpwm:run-shell-command "libinput-gestures-setup start")
 
-(defcommand home-dual () ()
-  (run-shell-command "./~/.screenlayout/home-dual.sh"))
+;; (defcommand home-dual () ()
+;;   (run-shell-command "./~/.screenlayout/home-dual.sh"))
 ;; ;;   )
 
 ;; (stumpwm:run-shell-command "set-font -m 8859-2")
