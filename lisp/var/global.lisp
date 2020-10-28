@@ -26,12 +26,12 @@
 (defun store-password (name password)
   (sosei:pwrite* name (encrypt (concat password (decrypt *salt* *lisp-key*)) *lisp-key*)))
 
-
-(defvar *github-token* (sosei::pread* "keys/github-token"))
-(defvar *lisp-key* (sosei::pread* "keys/key"))
-(defvar *salt* (sosei:pread* "keys/salt"))
-(defvar *lisp-password* (sosei:pread* "keys/password"))
-(defvar *root-password* (sosei:pread* "keys/root"))
+;; to _actually_ unlock the *lisp-key* requires entering the master password
+(defparameter *lisp-key* (sosei::pread* "keys/key"))
+(defparameter *github-token* (sosei::pread* "keys/github-token"))
+(defparameter *salt* (sosei:pread* "keys/salt"))
+(defparameter *lisp-password* (sosei:pread* "keys/password"))
+(defparameter *root-password* (sosei:pread* "keys/root"))
 (defparameter *postgres-password* (sosei:pread* "keys/postgres"))
 
 (defparameter *transient-border-width* 1)

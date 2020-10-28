@@ -529,7 +529,8 @@ I could also display text on each screenshot with the name of each group.
 ;;                  (concat *desktop* "screen-1")))
 
 (defcommand init-desktop () ()
-    (restore-desktop))
+  (run-commands "enter-master-key")
+  (restore-desktop))
 
 ;; (screen-groups (ws-screen (car (hash-table-values workspace-hash))))       ;
 

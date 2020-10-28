@@ -54,7 +54,7 @@
 
 (defun encrypt (plaintext key)
   (let ((cipher (get-cipher key))
-        (msg (ironclad:ascii-string-to-byte-array plaintext)))
+      (msg (ironclad:ascii-string-to-byte-array plaintext)))
     (ironclad:encrypt-in-place cipher msg)
     (ironclad:octets-to-integer msg)))
 
@@ -64,7 +64,7 @@
 
 (defun decrypt (ciphertext-int key)
   (let ((cipher (get-cipher key))
-        (msg (ironclad:integer-to-octets ciphertext-int)))
+      (msg (ironclad:integer-to-octets ciphertext-int)))
     (ironclad:decrypt-in-place cipher msg)
     (coerce (mapcar #'code-char (coerce msg 'list)) 'string)))
 
@@ -76,12 +76,22 @@
     (with-output-to-string (out)
       (s-base64:encode-base64-bytes (remove-from-end msg *salt-length*) out))))
 
+
 ;; This is fine to memoize
 (sosei:memoize-symbol 'base64)
 
 ;; Example decrypt from file
 ;; (with-open-file (s "filename")
 ;;   (decrypt  (read s) "passwordkey"))
+
+(defun hash-key (key)
+  (let ((msg (ironclad:digest-sequence :skein1024/512 (ironclad:ascii-string-to-byte-array key))))
+    (ironclad:byte-array-to-hex-string msg)))
+
+;; so flow looks like this
+;; master password | hash | decrypt password with hash
+(defcommand enter-master-key (password) ((:password "enter master key: "))
+  (defparameter *lisp-key* (hash-key password)))
 
 (defvar *salt-length* (length (decrypt *salt* *lisp-key*)))
 
@@ -142,6 +152,7 @@
          ,(if output
               `(run-prog-collect-output *shell-program* "-c" ,cmd)
               `(run-prog *shell-program* :args (list "-c" ,cmd) :wait nil))))))
+
 
 (defmacro define-su-command (name user command &key output)
   (let ((cmd (gensym)))
