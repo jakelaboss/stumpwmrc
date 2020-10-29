@@ -8,6 +8,8 @@
 (defparameter nebula-values '((49576 204) (48379 234) (47167 118)))
 (defparameter forest-values '((34602 135) (40750 128) (23597 68)))
 (defparameter sunset-values '((7417 136) (5288 191) (1480 234)))
+(defparameter reading-values '((8597 121) (8597 121) (8597 121) (8595 121)))
+
 
 (defun nmap (&optional portscan?)
   "scans the current subnet"
@@ -36,13 +38,6 @@
       (let ((br (cl-hue:make-bridge (hue-bridge-address) username)))
         (defparameter *bridge* br)
         br)))
-
-(defun bridge ()
-  (if *bridge* *bridge*
-      (let ((br (cl-hue:make-bridge "192.168.1.98" username)))
-        (defparameter *bridge* br)
-        br)))
-
 
 (defun get-light-state (light)
   (list (slot-value (cl-hue:get-light (bridge) light) 'cl-hue::hue)
@@ -83,6 +78,9 @@
                  (if (nth (+ 1 n) values)
                      (incf n)
                      (setf n 0))))))
+
+(defun extract-light-state ()
+  (hash-table-alist *room*))
 
 ;; Example:
 

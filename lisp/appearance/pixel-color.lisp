@@ -69,14 +69,14 @@
   (unless window (setf window root-window))
   (let* ((image (xlib:get-image window :x x :y y :width 1 :height 1))
          (d (slot-value image 'xlib::data)))
-    (list (aref d 0) (aref d 1) (aref d 2))))
+    (list (aref d 2) (aref d 1) (aref d 0))))
 
 (defun grab-from-screen (window x y)
   (unless window (setf window root-window))
   (let* ((image (xlib:get-image window :x x :y y :width 1 :height 1))
          (d (slot-value image 'xlib::data)))
     (print d)
-    (rgb-to-hue (aref d 0) (aref d 1) (aref d 2))))
+    (rgb-to-hue (aref d 2) (aref d 1) (aref d 0))))
 
 (defun dec-to-hex (dec)
   (write-to-string dec :base 16))
