@@ -114,10 +114,11 @@
 (defcommand set-to-streams () ()
   (defparameter *mode-line-foreground-color* "darkcyan")
   (stumpwm:set-focus-color *mode-line-foreground-color*)
-  (set-wallpaper (*wallpapers-desktop* "water/cK25Jhp.jpg"
-                                       *wallpapers-desktop* "water/PxQhp6B.jpg"
-                                       *wallpapers-desktop* "water/qLRqQJX.jpg"
-                                       *wallpapers-desktop* "water/Y5L3Mpc.jpg"))
+  (set-wallpaper (
+                  *wallpapers-desktop* "water/Y5L3Mpc.jpg"
+                  *wallpapers-desktop* "water/qLRqQJX.jpg"
+                  *wallpapers-desktop* "water/flipped.jpg"
+                                       *wallpapers-desktop* "water/PxQhp6B.jpg"))
   (set-room-state forest-values))
 
 (defcommand set-to-grass () ()
@@ -166,16 +167,16 @@
 ;; (print current-set)
 ;; (eval current-set)
 
-;; (defun compton (&optional (opacity t) (active-opacity nil))
-;;   (let ((x (cl-ppcre:scan-to-strings "compton" (inferior-shell:run/s "ps -A")))
+;; (defun picom (&optional (opacity t) (active-opacity nil))
+;;   (let ((x (cl-ppcre:scan-to-strings "picom" (inferior-shell:run/s "ps -A")))
 ;;     (y `(cond ((null ,active-opacity)
-;;               (stumpwm:run-shell-command "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --active-opacity 0.9 --vsync opengl --refresh-rate 60")
+;;               (stumpwm:run-shell-command "picom -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --active-opacity 0.9 --vsync opengl --refresh-rate 60")
 ;;               (if (null ,opacity)
-;;                   (stumpwm:run-shell-command "compton -CGb --config /dev/null --no-fading-destroyed-argb --no-fading-openclose --vsync opengl --refresh-rate 60")
-;;                   (stumpwm:run-shell-command "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --vsync opengl --refresh-rate 60"))))))
+;;                   (stumpwm:run-shell-command "picom -CGb --config /dev/null --no-fading-destroyed-argb --no-fading-openclose --vsync opengl --refresh-rate 60 --backend xrender")
+;;                   (stumpwm:run-shell-command "picom -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --vsync opengl --refresh-rate 60 --backend xrender"))))))
 ;;     (if x
 ;;         (progn
-;;           (run-shell-command "pkill compton")
+;;           (run-shell-command "pkill picom")
 ;;           (eval y))
 ;;         (eval y))))
 
@@ -202,9 +203,9 @@
   (take-screenshot))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
-;; Compton
-(defun start-compton (&optional (active-transparancy nil) (passive-transparancy nil))
-  (stumpwm:run-shell-command "pkill compton")
+;; Picom
+(defun start-picom (&optional (active-transparancy nil) (passive-transparancy nil))
+  (stumpwm:run-shell-command "pkill picom")
   (sleep .5)
   (if active-transparancy (stumpwm:run-shell-command
                            (concat "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --active-opacity 0.9 "
@@ -212,28 +213,37 @@
                                    "--glx-no-rebind-pixmap -menu-opacity=0.8 --inactive-opacity-override -e .8"))
       (if passive-transparancy
           (stumpwm:run-shell-command
-           (concat "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose --unredir-if-possible"
-                   "--vsync opengl-oml --glx-no-stencil --xrender-sync-fence --glx-swap-method undefined "
+           (concat "compton -CGb -i 0.8 --no-fading-destroyed-argb --no-fading-openclose "
+                   "--vsync --glx-no-stencil --xrender-sync-fence --glx-swap-method undefined "
                    "--glx-no-rebind-pixmap -menu-opacity=0.8 --inactive-opacity-override -e .8"))
           (stumpwm:run-shell-command
-           (concat "compton -CGb --no-fading-destroyed-argb --no-fading-openclose --unredir-if-possible "
-                   "--vsync opengl-oml --glx-no-stencil --xrender-sync-fence --glx-swap-method undefined "
-                   "--glx-no-rebind-pixmap")))))
+           (concat "picom -CGb --no-fading-destroyed-argb --no-fading-openclose --vsync "
+                   "--glx-no-stencil --xrender-sync-fence --glx-no-rebind-pixmap --refresh-rate 60 --backend xrender")))))
 
-(defcommand compton (active-op passive-op) ((:y-or-n "Active transparancy on?: ") (:y-or-n "Passive transparrancy on?: "))
-  (start-compton active-op passive-op))
+(defcommand picom (active-op passive-op) ((:y-or-n "Active transparancy on?: ") (:y-or-n "Passive transparrancy on?: "))
+  (start-picom active-op passive-op))
 
+;; (wm-state (current-window))
+;; (stumpwm::find-wm-state  )
+
+;; (let ((xwin (window-xwin (nth 2 (group-windows (current-group))))))
+;;   (xlib:get-property xwin  :WM_STATE ) (add-wm-state))
+
+  ;; (xlib:get-property xwin  :_NET_WM_STATE_HIDDEN))
 
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ;; Font ::
 ;; (in-package :stumpwm)
 (stumpwm:load-module "ttf-fonts")
+
+;; to Update the font-cache
+(clx-truetype:cache-fonts)
 ;; (set-font (make-instance 'xft:font :family "Anonymous Pro" :subfamily "Regular" :size 13))
 ;; (set-font (make-instance 'xft:font :family "Noto Mono" :subfamily "Regular" :size 13))
 
 ;; Error: Keep Noto Fonts package below 2019-02
-(set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
+(set-font (make-instance 'xft:font :family "Noto Sans Medium" :subfamily "Regular" :size 12))
 
 
 ;; (set-font "-misc-dejavu sans condensed-medium-o-semicondensed--0-0-0-0-p-0-ascii-0")
@@ -246,7 +256,7 @@
 ;; (set-font "-monotype-noto sans med-medium-r-normal--0-0-0-0-p-0-iso8859")
 ;; (font-exists-p "Noto Sans Display")
 ;; NotoSansDisplay-Regular.ttf: "Noto Sans Display" "Regular"
-;; (mapc (lambda (x) (format t "Family: ~a  Subfamilies: ~{~a, ~}~%" x (clx-truetype:get-font-subfamilies x)) ) (clx-truetype:get-font-families)))
+;; (mapc (lambda (x) (format t "Family: ~a  Subfamilies: ~{~a, ~}~%" x (clx-truetype:get-font-subfamilies x)) ) (clx-truetype:get-font-families))
 ;; (set-font (make-instance 'xft:font :family "Noto Sans Med" :subfamily "Regular" :size 12))
 ;; (clx-truetype:get-font-families)
 ;; (set-font "/usr/share/fonts/noto/NotoSans-Regular.ttc")

@@ -102,7 +102,6 @@
           (ws-name ws) name
           (ws-current-group ws) 0
           (gethash id workspace-hash) ws)))
-
 (defun create-new-workspace (name)
   (init-workspace (init-screen
                    (car (xlib:display-roots *display*)) name "")
@@ -201,6 +200,19 @@
           (progn (switch-to-workspace (car result))
                  (switch-to-group (cdr result)))
           (switch-to-workspace result)))))
+
+(defun switch-to-group-by-name (name)
+  (let* ((screens (hash-table-values workspace-hash))
+         (names (mapcan (lambda (ws)
+                          (let ((screen (if (ws-active-p ws) (current-screen) (ws-screen ws))))
+                            (mapcar (lambda (group)
+                                      (cons group ws))
+                                    (screen-groups screen))))
+                        screens))
+         (group (find-if #'(lambda (x) (equal name (group-name x)))
+                         names :key 'car)))
+    (switch-to-workspace (cdr group))
+    (switch-to-group (car group))))
 
 ;; Helpful workspace functions
 (defun screen-workspace (screen)

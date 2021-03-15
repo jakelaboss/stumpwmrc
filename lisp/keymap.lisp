@@ -18,24 +18,27 @@
         do (xwin-grab-keys (screen-focus-window i) (screen-current-group i)))
   (xlib:display-finish-output *display*))
 
+
 ;; Applications ;;
 (defvar *application-bindings*
   (let ((m (make-sparse-keymap)))
     ;; (define-key m (kbd "e") "gnext")
-    (define-key m (kbd "e") "exec sh -c 'primusrun emacsclient -c .'")
+    (define-key m (kbd "e") "exec sh -c \"emacsclient -c .\"")
     ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
-    (define-key m (kbd "E") "exec sh -c 'primusrun emacs'")
+    (define-key m (kbd "E") "exec sh -c \"prime-run emacs\"")
     (define-key m (kbd "a") "exec arandr")
     (define-key m (kbd "v") "pavucontrol")
     (define-key m (kbd "u") "exec urxvt")
+    (define-key m (kbd "u") "exec sh -c \"prime-run urxvt\"")
+    (define-key m (kbd "U") "exec urxvt -e emacs -nw")
     (define-key m (kbd "s") "exec rofi -show ssh")
     (define-key m (kbd "S") "exec steam")
     (define-key m (kbd "F2") "exec conky")
-    (define-key m (kbd "k") "exec keypass")
+    (define-key m (kbd "k") "exec keepassxc")
     (define-key m (kbd "K") "exec encryptr")
     (define-key m (kbd "p") "exec plover")
     (define-key m (kbd "r") "exec rofi -show drun")
-    (define-key m (kbd "f") "exec primusrun firefox-developer-edition")
+    (define-key m (kbd "f") "exec firefox-developer-edition")
     (define-key m (kbd "F") "google-from-clipboard")
     (define-key m (kbd "XF86AudioPlay") "exec spotify")
     (define-key m (kbd "g") "exec google-chrome-beta")
@@ -180,6 +183,7 @@
 (defvar *common-lisp-mode*
   (let ((m (stumpwm:make-sparse-keymap)))
     (stumpwm:define-key m (stumpwm:kbd "s") '*common-lisp-mode-repl*)
+    ;; (stumpwm:define-key m (stumpwm:kbd "j") "julius-toggle")
     m))
 
 (stumpwm:define-key *common-lisp-mode* (stumpwm:kbd "e") '*common-lisp-mode-repl*)
@@ -254,6 +258,7 @@
     (stumpwm:define-key m (stumpwm:kbd "p") "plover-toggle")
     (stumpwm:define-key m (stumpwm:kbd "r") "resize-popup")
     (stumpwm:define-key m (stumpwm:kbd "G") "toggle-golden-ratio-toplevel")
+    (stumpwm:define-key m (stumpwm:kbd "m") "mic-toggle")
     (stumpwm:define-key m (stumpwm:kbd "h") "move-with-ratio left")
     (stumpwm:define-key m (stumpwm:kbd "j") "move-with-ratio down")
     (stumpwm:define-key m (stumpwm:kbd "k") "move-with-ratio up")

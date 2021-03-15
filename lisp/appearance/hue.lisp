@@ -5,17 +5,19 @@
 (import 'cl-ppcre:scan-to-strings)
 
 ;; Room Config
-(defparameter nebula-values '((49576 204) (48379 234) (47167 118)))
+(defparameter nebula-values '((48379 234) (47167 118)  (49576 204)))
 (defparameter forest-values '((34602 135) (40750 128) (23597 68)))
 (defparameter sunset-values '((7417 136) (5288 191) (1480 234)))
 (defparameter reading-values '((8597 121) (8597 121) (8597 121) (8595 121)))
-
+(defparameter twilight-values '((4325 120) (52796 89) (49460 150)))
 
 (defun nmap (&optional portscan?)
   "scans the current subnet"
   (let ((ps (if portscan? "-sn" ""))
-      (lan (scan-to-strings "(?! inet )(\\d+.\\d+.\\d+)"
-                            (scan-to-strings "wlp3s0(.*\\n*)*" (run/s "ip addr")))))
+      (lan (scan-to-strings "(?! inet )(\\d+\\.\\d+\\.\\d+)"
+                            (scan-to-strings
+                             (format nil "~a(.*\\n*)*" *device*)
+                             (run/s "ip addr")))))
     (run/s (format nil "nmap ~a.0/24 ~a" lan ps))))
 
 (defun hue-bridge-address ()
@@ -55,7 +57,15 @@
                (if vx (setf (gethash x hs) vx))))
     hs))
 
-(defparameter *room* (get-room-state))
+(defparameter *room* nil)
+(defparameter *living-room* nil)
+(defvar *bedroom* nil) ;; just the first 3
+
+(defun define-rooms ()
+  (defparameter *room* (get-room-state))
+  (defparameter *living-room* (alist-hash-table (subseq (hash-table-alist *room*) 3)))
+  (defparameter *bedroom* (alist-hash-table (subseq (hash-table-alist *room*) 0 3))) ;; just the first 3
+  )
 
 (defun set-light-hue (light brightness hue sat)
   (cl-hue:set-light-state-by-number
@@ -70,10 +80,45 @@
                   :saturation sat :effect "none"
                   :xy xy))
 
+(defun turn-light-off (light)
+  (cl-hue:set-light-state-by-number
+   (bridge) light :on nil))
+
+(defun turn-light-on (light)
+  (cl-hue:set-light-state-by-number
+   (bridge) light :on t))
+
+(defun turn-light-down (light &optional amount)
+  (let* ((l (cl-hue:get-light (bridge) light))
+         (amount (or amount 10))
+         (brightness (- (slot-value l 'cl-hue::brightness) amount)))
+    (unless (> brightness 0) (setf brightness 1))
+    (cl-hue:set-light-state-by-number
+     (bridge) light :on t
+     :brightness brightness)))
+
+(defun turn-light-up (light &optional amount)
+  (let* ((l (cl-hue:get-light (bridge) light))
+         (amount (or amount 10))
+         (brightness (+ (slot-value l 'cl-hue::brightness) amount)))
+    (unless (< brightness 256) (setf brightness 255))
+    (cl-hue:set-light-state-by-number
+     (bridge) light :on t
+     :brightness brightness)))
+
 (defun set-room-state (values)
   (if *bridge*
       (let ((n 0))
-        (loop for x in (hash-table-keys *room*)
+        (loop for x in (hash-table-keys *bedroom*)
+              do (set-light-hue x 255 (car (nth n values)) (cadr (nth n values)))
+                 (if (nth (+ 1 n) values)
+                     (incf n)
+                     (setf n 0))))))
+
+(defun set-state-of-room (room values)
+  (if *bridge*
+      (let ((n 0))
+        (loop for x in (hash-table-keys room)
               do (set-light-hue x 255 (car (nth n values)) (cadr (nth n values)))
                  (if (nth (+ 1 n) values)
                      (incf n)
@@ -203,64 +248,53 @@
                                      (brightness (round (* 255 (* 1.2 (nth 2 av))))))
                                 (print av)
                                 (unless (equal av last)
-                                  (loop for x in (hash-table-keys *room*)
+                                  (loop for x in (hash-table-keys *living-room*)
                                         do (set-light-hue x (if (> brightness 255) 255 brightness)
                                                           color (if (> sat 255) 255 sat))))
                                 (setf last av)
-                                (sleep (* .2 (hash-table-count *room*)))))))
+                                (sleep (* .2 (hash-table-count *living-room*)))))))
 
+(defun light-sync-on ()
+  (defparameter *hue-thread*
+    (bt:make-thread *hue-pan*
+                    :name "Hue Loop")))
 
-;; (defparameter *hue-thread*
-;;   (bt:make-thread *hue-pan*
-;;                   :name "Hue Loop"))
+(defun light-sync-off ()
+  (let ((thread (find-if #'(lambda (x) (cl-ppcre:scan "Hue" (bt:thread-name x)))
+                       (sb-thread:list-all-threads))))
+    (if thread (bt:destroy-thread thread))))
 
-;; (bt:destroy-thread
-;;  (find-if #'(lambda (x) (cl-ppcre:scan "Hue" (bt:thread-name x)))
-;;           (sb-thread:list-all-threads)))
+(defun turn-all-lights-off ()
+  (mapcar #'turn-light-off
+          (hash-table-keys *room*)))
 
-;; tekken
-;; virtual fighter
-;; buttcheeks
-;; flatt butt cheeks
-;; hairy armpitt
-;; scratchy kneecap
-;; big dump of games
-;; playstation 2 - maybe
-;; tekken 3
-;; ghost busters atari
-;; jedi academy 1&2
-;; super star wars the empire strikes back
-;; ninja turtles 4; turtles in time
+(defun turn-living-room-off ()
+  (mapcar #'turn-light-off
+          (hash-table-keys *living-room*)))
 
-;; (sb-thread:list-all-threads)
+(defun turn-living-room-down ()
+  (mapcar #'(lambda (x) (turn-light-down x 50))
+          (hash-table-keys *living-room*)))
 
-;; (funcall *hue-pan* :pget 'sosei:this)
+(defun turn-living-room-up ()
+  (mapcar #'(lambda (x) (turn-light-up x 50))
+          (hash-table-keys *living-room*)))
 
-;; (setf (sosei:get-p *hue-pan* 'sosei:this)
-;;       (lambda ()
-;;         (loop while *hue-loop*
-;;               do (let ((b (get-average-color)))
-;;                    (set-light-xy 5 255 b 255)
-;;                    (set-light-xy 6 255 b 255)
-;;                    (set-light-xy 7 255 b 255)
-;;                    (sleep 1)))))
+(defun turn-living-room-on ()
+  (mapcar #'turn-light-on
+          (hash-table-keys *living-room*)))
 
-;; (let ((b (grab-from-screen (hue-win) 100 100))
-;;       (sat 150))
-;;   ;; (print b)
-;;   ;; (unless (> b 10000) (setf sat 0))
-;;   (set-light-state 5 255 b sat)
-;;   (sleep .3))
+(defun turn-bedroom-off ()
+  (mapcar #'turn-light-off
+          (hash-table-keys *bedroom*)))
 
+(defun turn-bedroom-on ()
+  (set-state-of-room *bedroom* nebula-values))
 
+(defun turn-bedroom-down ()
+  (mapcar #'(lambda (x) (turn-light-down x 50))
+          (hash-table-keys *bedroom*)))
 
-
-;; (let ((b (grab-from-screen (xlib:window-id (root-window)) 20 20))
-;;       (sat 150))
-;;   (unless (> b 5000) (setf sat 0))
-;;   (set-light-state 5 255 b ))
-
-;; Usage
-;; (defvar *forest-values* (grab-values-from-jpeg
-                         ;; (concat *green* "7162209cbe40aeeba705870210e5eb7d.jpg")))
-;; (set-room-state (image-to-hue *forest-values*))
+(defun turn-bedroom-up ()
+  (mapcar #'(lambda (x) (turn-light-up x 50))
+          (hash-table-keys *bedroom*)))

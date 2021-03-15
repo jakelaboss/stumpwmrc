@@ -1,4 +1,5 @@
 (ql:quickload '(:stumpwm :jonathan :inferior-shell :sqlite))
+
 (in-package :stumpwm)
 
 (defmacro amapcar (function list)
@@ -6,7 +7,10 @@
   `(let (x)
      (mapcar (lambda (x) ,function) ,list)))
 
-(defvar *session-file* "/home/vagabond/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
+;; (defvar *session-file* "home/vagabond/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
+(defparameter *session-file*
+  (namestring (car (directory "/home/vagabond/.mozilla/firefox/*.dev-edition-default/sessionstore-backups/recovery.jsonlz4"))))
+
 
 (defvar *menu-max-length* 20)
 
@@ -44,7 +48,7 @@
 (defun current-windows ()
   "Get current browser window names and object"
   (remove nil (mapcar #'(lambda (x)
-                        (let ((b (cl-ppcre:scan-to-strings ".+(?= - Firefox)" (window-name x))))
+                        (let ((b (cl-ppcre:scan-to-strings ".+(?= — Firefox)" (window-name x))))
                           (if b (cons b x))))
                     (all-workspace-windows))))
 
@@ -169,7 +173,7 @@
 
 (defcommand browser-history () ()
   (unwind-protect
-       (let ((brower-table (sqlite:execute-to-list browser-places ;; group by the distinct title
+       (let ((browser-table (sqlite:execute-to-list browser-places ;; group by the distinct title
                                                  "select title, url from moz_places where title is not null group by title;")))
          (ignore-errors
           (let ((tab (run-browser-menu (current-screen)
@@ -183,7 +187,6 @@
                                                     :FILTER-PRED #'menu-item-matches-regexp))))
             (if tab
                 (firefox-newtab (cadr tab))))))))
-
 
 ;; old data
 ;; (remove-duplicates (let* ((window (current-windows))

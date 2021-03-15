@@ -16,6 +16,7 @@
   (cl-ppcre:scan-to-strings
    "wl.+:" (inferior-shell:run/ss "ip addr | grep wl")) 1))
 
+(defvar *device* "wlp0s20f3")
 
 (defparameter *network-hash-table* (make-hash-table :test #'equal))
 
@@ -55,8 +56,8 @@
            (profile (x)
              (cl-ppcre:regex-replace-all " " (ssid x) "_")))
     (let* ((hs (make-hash-table :test #'equal))
-           (scan (sudo-run "iw dev wlp3s0 scan"))
-           (networks (remove nil (cl-ppcre:split "BSS" scan)))
+           (scan (sudo-run (format nil "iw dev ~a scan" *device*)))
+           (networks (remove nil (cl-ppcre:split (format nil "BSS .+(on ~a)" *device*) scan)))
            (net-string (remove nil (mapcar #'profile networks))))
       (setf *iw-scan* scan)
       (mapcar (lambda (x)
@@ -65,7 +66,7 @@
                             (if (cl-ppcre:scan "RSN" x) t nil))))
               networks)
       (setf *network-hash-table* hs)
-      (select-from-menu screen
+      (select-from-menu (current-screen)
                         (mapcar (lambda (g) (list g))
                                 net-string)
                         "Networks:"))))
@@ -110,15 +111,15 @@
         (cmd *network-entry-p* (p) ((:y-or-n "Unkown Network: Would you like to create an entry?"))
              (if p
                  (fork-command (if (cdr (gethash network *network-hash-table*))
-                      ;; (if (gethash network *network-hash-table*)
-                      (progn (run-commands "*wireless-wpa*")
-                             (sleep 3)
-                             (if (sudo-run (concat "netctl start " netctl-name))
-                                 (sudo-run (concat "netctl switch-to " netctl-name))))
-                      (progn (run-commands "*wireless-open*")
-                             (sleep 3)
-                             (if (sudo-run (concat "netctl start " netctl-name))
-                                 (sudo-run (concat "netctl switch-to " netctl-name))))))
+                                   ;; (if (gethash network *network-hash-table*)
+                                   (progn (run-commands "*wireless-wpa*")
+                                          (sleep 3)
+                                          (if (sudo-run (concat "netctl start " netctl-name))
+                                              (sudo-run (concat "netctl switch-to " netctl-name))))
+                                   (progn (run-commands "*wireless-open*")
+                                          (sleep 3)
+                                          (if (sudo-run (concat "netctl start " netctl-name))
+                                              (sudo-run (concat "netctl switch-to " netctl-name))))))
                  ;; (progn (run-commands "*wireless-open*")
                  ;; (sleep 3) (sudo-run (concat "netctl start " network))
                  ;; (sleep 3) (sudo-run (concat "netctl switch-to " network))))
@@ -138,30 +139,29 @@
                                              "Networks:"))))
     (sudo-run (format nil "netctl switch-to ~a" network))))
 
-
 (defcommand net-scan () (:rest)
   (unwind-protect
        (labels ((net (network known-list)
                   (if (null (cl-ppcre:scan-to-strings (format-network-name network) known-list))
                       (add-to-known-networks network)
                       (fork-command (sudo-run (format nil "netctl switch-to ~a" (format-network-name network)))))))
-         (if (net-status "wlp3s0")
+         (if (net-status *device*)
              (let* ((network (select-network-from-menu (current-screen)))
                     (known-networks (sudo-run "netctl list")))
                (if network (net (car network) known-networks)))
-             (progn (fork-command (sudo-run "ip link set wlp3s0 up"))
+             (progn (fork-command (sudo-run (format nil "ip link set ~a up" *device*)))
                     (let* ((network (select-network-from-menu (current-screen)))
                            (known-networks (sudo-run "netctl list")))
-                      (sudo-run "ip link set wlp3s0 down")
+                      (sudo-run (format nil "ip link set ~a down" *device*))
                       (if network (net (car network) known-networks))))))))
 
-      ;;   (if (null (cl-ppcre:scan-to-strings network known-networks))
-      ;;       (add-to-known-networks network)
-      ;;       (sudo-run (format nil "netctl switch-to ~a" network))))
+;;   (if (null (cl-ppcre:scan-to-strings network known-networks))
+;;       (add-to-known-networks network)
+;;       (sudo-run (format nil "netctl switch-to ~a" network))))
 
-      ;; (progn (sudo-run "ip link set wlp3s0 up")
-      ;;        (let* ((network (car (select-network-from-menu (current-screen))))
-      ;;               (known-networks (sudo-run "netctl list")))
+;; (progn (sudo-run "ip link set wlp3s0 up")
+;;        (let* ((network (car (select-network-from-menu (current-screen))))
+;;               (known-networks (sudo-run "netctl list")))
 
 (defcommand remove-network () (:rest)
   (when-let* ((known-networks (cl-ppcre:split "\\n"
@@ -206,8 +206,6 @@
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
 ;; Bluetooth
 ;;------------------------------------------------------------------------------------------------------------------------ ;;
-
-
 
 
 (defun bluetooth-devices ()

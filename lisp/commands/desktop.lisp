@@ -235,6 +235,35 @@
   ((kbd ";") "colon")
   ((kbd ":") "eval"))
 
+(defun restore-desktop (ddump)
+  "Restore all frames, all groups, and all screens."
+  (dolist (sdump (ddump-screens ddump))
+    (let ((screen (find (sdump-number sdump) *screen-list*
+                        :key 'screen-id :test '=)))
+      (when screen
+        (restore-screen screen sdump)))))
+
+(defun restore-from-file (file)
+  "Restores screen, groups, or frames from named file, depending on file's
+contents. Defaults to the XDG_DATA_HOME location with .dump file types."
+  (let ((dump
+        (with-open-file (fp file :direction :input)
+          (with-standard-io-syntax
+            (let ((*package* (find-package :stumpwm)))
+              (read fp))))))
+    (typecase dump
+      (gdump
+       (restore-group (current-group) dump)
+       (message "Group restored."))
+      (sdump
+       (restore-screen (current-screen) dump)
+       (message "Screen restored."))
+      (ddump
+       (restore-desktop dump)
+       (message "Desktop restored."))
+      (t
+       (message "Don't know how to restore ~a." dump)))))
+
 (defun space-this (n)
   (move-group-to-screen (slot-value *metaspace* :meta-group)
                         (current-screen))
@@ -257,14 +286,13 @@ Thoughts:
 I could change the border width and color when moving to the desktop group to more easily show which group is active.
 I could also display text on each screenshot with the name of each group.
 
-
 |#
 
 ;; (move-group-to-screen (slot-value *metaspace* :meta-group)
 ;;                       (ws-screen (current-ws))))
 
 ;; (dump-screen (current-screen))
-;; (dump-group-to-file "group-4x4-with-heads")
+(dump-group-to-file "group-4x4")
 
 (defcommand display-ws () ()
   (space-this 4)

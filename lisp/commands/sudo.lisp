@@ -93,7 +93,7 @@
 (defcommand enter-master-key (password) ((:password "enter master key: "))
   (defparameter *lisp-key* (hash-key password)))
 
-(defvar *salt-length* (length (decrypt *salt* *lisp-key*)))
+(defparameter *salt-length* (length (decrypt *salt* *lisp-key*)))
 
 (defun sudo-password () (remove-from-end (decrypt *lisp-password* *lisp-key*) *salt-length*))
 (defun sudo-base64 () (base64 *lisp-password* *lisp-key*))

@@ -9,6 +9,9 @@
 (run-shell-command "xmodmap -e 'clear Lock'") ;; Sets Caps-lock to ESC key
 (run-shell-command "xmodmap -e 'keycode 0x42=Escape'")
 (stumpwm:run-shell-command "xmodmap ~/.Xmodmap");; Set Brackets to Parans
+
+;; for split keyboard
+;; (stumpwm:run-shell-command "xmodmap ~/.Xmodmap.split")
 (stumpwm:run-shell-command "libinput-gestures-setup start")
 
 ;; (defcommand home-dual () ()

@@ -356,7 +356,7 @@ window along."
 
 (defvar *brightness-increment* nil)
 (defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
-(defvar *keyboard-brightness-max* (read (open "/sys/class/leds/asus::kbd_backlight/max_brightness")))
+(defvar *keyboard-brightness-max* (read (open "/sys/class/leds/dell::kbd_backlight/max_brightness")))
 
 (defcommand set-backlight (x) ((:number "Set backlight to %: "))
   "Set backlight to a specified number out of 100"
