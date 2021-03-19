@@ -41,13 +41,13 @@
   (let ((id (group-image-id (current-group)))
       (p (group-image-format (current-group))))
     (when
-    (setf (gethash id *group-images*)
-          (progn (run-shell-command
-                  (if (multi-head?)
-                      (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
-                              p p p)
-                      (format nil "scrot -o -q 50 ~a" p))
-                  p))))))
+        (setf (gethash id *group-images*)
+              (progn (run-shell-command
+                      (if (multi-head?)
+                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
+                                  p p p)
+                          (format nil "scrot -o -q 50 ~a" p))
+                      p))))))
 
 (defun image-text (image-path text)
   (let ((px (* (length text) 55)))

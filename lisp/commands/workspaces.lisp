@@ -102,6 +102,7 @@
           (ws-name ws) name
           (ws-current-group ws) 0
           (gethash id workspace-hash) ws)))
+
 (defun create-new-workspace (name)
   (init-workspace (init-screen
                    (car (xlib:display-roots *display*)) name "")

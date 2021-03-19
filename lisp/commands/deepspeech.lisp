@@ -19,16 +19,16 @@
 (defcommand mic-toggle () ()
   (toggle-mic))
 
-;; (activate-topmap)
+(activate-topmap)
 ;; (hash-table-alist clifford::*atlas-hash*)
-;; (ensure-clifford)
+(ensure-clifford)
 ;; (define-rooms)
-;; (stop-clifford)
+(stop-clifford)
 ;; (active-atlas-name)
 ;; (atlas-map *speech-map*)
 ;; (activate-atlas (gethash 'clifford::*music* clifford::*atlas-hash*))
 ;; (reset-results)
-;; (read-results)
+(read-results)
 
 
 ;; let's discuss creating a language for defining commands

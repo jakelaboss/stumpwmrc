@@ -72,12 +72,6 @@
        (run-hook-with-args *focus-window-hook* window cw)))))
 
 
-(focus-forward (current-group))
-(focus-window )
-
-(window-focu)
-(move-focus)
-
 (defun move-focus-and-or-window (dir &optional win-p)
   (declare (type (member :up :down :left :right) dir))
   (let* ((group (current-group))
@@ -87,10 +81,6 @@
       (if (and win-p window)
           (pull-window window new-frame)
           (focus-frame group new-frame)))))
-
-
-(defun sw)
-(switch-to-group )
 
 (defun focus-frame (group f)
   (let ((w (frame-window f))

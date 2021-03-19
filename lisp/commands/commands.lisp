@@ -174,6 +174,14 @@
 ;; TODO redefine window-group with unwind protection
 ;; (defun window-group ())
 
+
+(defcommand always-show () ()
+  (if (typep (current-window) 'float-window)
+      (progn (unfloat-window (current-window) (current-group))))
+  (toggle-always-show)
+  (toggle-always-on-top))
+
+
 (defcommand all-windowlist (&optional (fmt *window-format*) window-list) (:rest)
   (let ((window-list (or window-list
                          (mapcar #'(lambda (x)
