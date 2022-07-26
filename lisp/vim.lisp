@@ -45,13 +45,12 @@
 (define-key *top-map* (kbd "s-i") "send-sudo-password")
 (define-key *top-map* (kbd "s-I") "send-github-token")
 
-(define-key *top-map* (kbd "F1") "mute-toggle")
-(define-key *top-map* (kbd "F2") "dec-volume")
-(define-key *top-map* (kbd "F3") "inc-volume")
+;; (define-key *top-map* (kbd "F1") "mute-toggle")
+;; (define-key *top-map* (kbd "F2") "dec-volume")
+;; (define-key *top-map* (kbd "F3") "inc-volume")
 
-;; Browser Commands ;;
-(define-key *top-map* (kbd "F10") "mute-toggle")
-(define-key *top-map* (kbd "F11") "dec-volume")
-(define-key *top-map* (kbd "F12") "inc-volume")
-
+;; ;; Browser Commands ;;
+;; (define-key *top-map* (kbd "F10") "mute-toggle")
+;; (define-key *top-map* (kbd "F11") "dec-volume")
+;; (define-key *top-map* (kbd "F12") "inc-volume")
 

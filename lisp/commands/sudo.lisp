@@ -62,6 +62,7 @@
 ;; (with-open-file (s "filename" :direction :output :if-exists :supersede :if-does-not-exist :create)
 ;;   (write (encrypt "thisisanexamplepassword" "passwordkey") :stream s))
 
+
 (defun decrypt (ciphertext-int key)
   (let ((cipher (get-cipher key))
       (msg (ironclad:integer-to-octets ciphertext-int)))
@@ -71,7 +72,7 @@
 (defun base64 (ciphertext-int key)
   "Convert a password into base64 format."
   (let ((cipher (get-cipher key))
-        (msg (ironclad:integer-to-octets ciphertext-int)))
+      (msg (ironclad:integer-to-octets ciphertext-int)))
     (ironclad:decrypt-in-place cipher msg)
     (with-output-to-string (out)
       (s-base64:encode-base64-bytes (remove-from-end msg *salt-length*) out))))

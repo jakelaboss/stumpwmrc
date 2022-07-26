@@ -7,12 +7,10 @@
 
 (in-package :stumpwm)
 
-(defmacro defhash (name)
-  `(defparameter ,name (make-hash-table :test 'equal)))
 
 (defhash *group-images*)
 
-(defvar *group-image-path* (concat *stumpwm-storage* "images/"))
+(defvar *group-image-path* (concat *stumpwm-storage* "group-images/"))
 
 (defmacro hash? (key hashtable value)
   `(if (gethash ,key ,hashtable) nil
@@ -37,6 +35,31 @@
 (defun multi-head? ()
   (> (length (group-heads (current-group))) 1))
 
+(defun group-head-image-id (group head)
+  (let ((group-id (group-image-id group)))
+    (list (car group-id) (cdr group-id)
+       (position head (sort (group-heads (current-group))
+                            #'< :key #'head-x)))))
+
+;; TODO we could create two different images for the two different heads
+;; (defun group-picture ()
+;;   )
+
+;; (defun head-picture (group head)
+;;   (scrot (group-image-format group)
+;;          (format nil "~ax~a" (head-x head) (head-y head))
+;;          :down))
+
+#|Okay, interesting idea.
+What if I use cl-png like I do with the lotus system?
+I could grab the rgb values from screen itself like I do in the hue system.
+
+|#
+
+
+;; (head-picture (current-group) (car (group-heads (current-group))))
+
+
 (defun group-picture ()
   (let ((id (group-image-id (current-group)))
       (p (group-image-format (current-group))))
@@ -44,7 +67,7 @@
         (setf (gethash id *group-images*)
               (progn (run-shell-command
                       (if (multi-head?)
-                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
+                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x2400 ~a"
                                   p p p)
                           (format nil "scrot -o -q 50 ~a" p))
                       p))))))
@@ -59,25 +82,17 @@
             image-path)))
 
 (defun group-picture ()
-  (let ((id (group-image-id (current-group)))
-        (p (group-image-format (current-group))))
-    (when
-        (setf (gethash id *group-images*)
-              (progn
-                (let ((l (length (group-heads (current-group)))))
-                  (cond ((> l 2)
-                         (run-shell-command
-                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity West -chop 1920x0 -gravity East -chop 1920x0 ~a"
-                                  p p p)))
-                        ((= l 2)
-                         (run-shell-command
-                          (format nil "scrot -o -q 50 ~a; convert ~a -gravity South -chop 0x1080 ~a"
-                                  p p p)))
-                        ((= l 1)
-                         (run-shell-command
-                          (format nil "scrot -o -q 50 ~a;~a" p
-                                  (image-text p (group-name (current-group)))))))
-                  p))))))
+  "Takes a picture of the group, then creates an image for each head of the group.
+Naming is done using the S-
+"
+  (loop for head in (group-heads (current-group))
+        do (setf (gethash (group-head-image-id (current-group) head) *group-images*)
+                 (let ((l (length (group-heads (current-group))))
+                     (p (group-head-image-format (current-group) x)))
+                   (run-shell-command
+                    (format nil "scrot -o -q 50 ~a;~a" p
+                            (image-text p (group-name (current-group)))))))))
+
 
 (defvar *group-storage-path* (concat *stumpwm-storage* "groups/"))
 
@@ -187,7 +202,6 @@
   (run-commands (print (format nil "exec feh -g 1280x720 -. -w -A \";\" --bg-color black ~aS*.jpg"
                          *group-image-path*))))
 
-
 (defun feh-refresh ()
   (inferior-shell:run/s (format
                          nil "kill SIGUSR1 ~a"
@@ -223,10 +237,31 @@
 
 ;; (parse-image-name (window-name (nth 1 (group-windows (current-group)))))
 
-(define-interactive-keymap desktop-ws (:on-exit #'(lambda ()
-                                                    (set-focus-color "darkcyan")
-                                                    (defparameter *window-border-style* :thin)
-                                                    (desktop-switch)))
+
+(defun interactive-switch ()
+  (set-focus-color "darkcyan")
+  (defparameter *window-border-style* :thin)
+  (desktop-switch))
+
+;; click hook
+(let ((top-level *standard-output*))
+  (defun desktop-click (screen win x y)
+    (declare (ignorable screen win x y))
+    (exit-interactive-keymap 'desktop-ws)
+    (format top-level "Clicked")
+    (remove-desktop-click)
+    (interactive-switch)))
+
+(defun add-desktop-click ()
+  (stumpwm::add-hook *click-hook* 'desktop-click))
+
+(defun remove-desktop-click ()
+  (stumpwm::remove-hook *click-hook* 'desktop-click))
+
+(define-interactive-keymap desktop-ws
+    (:on-enter #'add-desktop-click :on-exit #'(lambda ()
+                                                (remove-desktop-click)
+                                                (interactive-switch)))
   ;; Movement Mapping ;;
   ((kbd "j") "move-focus down")
   ((kbd "h") "move-focus left")
@@ -264,22 +299,48 @@ contents. Defaults to the XDG_DATA_HOME location with .dump file types."
       (t
        (message "Don't know how to restore ~a." dump)))))
 
-(defun space-this (n)
+
+(defun switch-to-metaspace ()
   (move-group-to-screen (slot-value *metaspace* :meta-group)
                         (current-screen))
-  (switch-to-group (slot-value *metaspace* :meta-group))
+  (switch-to-group (slot-value *metaspace* :meta-group)))
 
-  (restore-from-file (concat *group-storage-path*
-                             (if (> (length (group-heads (current-group))) 1)
-                                 (form "group-~ax~a-with-heads" n n)
-                                 (form "group-~ax~a" n n))))
 
-  (if (group-windows (current-group))
-      (format-images (slot-value *metaspace* :meta-group))
-      ;; (refresh-images (slot-value *metaspace* :meta-group))
-      (display-images)))
 ;; (sleep 10)
 
+;; (space-this 4)
+;; ((okay let's build a group))
+
+;; I think we should it on the specific head
+;; maybe ask?
+
+(defparameter *selected-head* nil)
+(defun selected-head ()
+  (cond ((null *selected-head*)
+         (select-head))
+        ((find *selected-head*
+               (group-heads (current-group))
+               :test 'equal)
+         *selected-head*)
+        (t (select-head))))
+
+;; (time (selected-head))
+
+(defun select-head ()
+  (when-let ((head (select-from-menu (current-screen)
+                                     (amapcar (cons (format nil "~a" (head-number x)) x)
+                                              (group-heads (current-group)))
+                                     "Select head to map desktop ")))
+    (setf *selected-head* (cdr head))))
+
+(defun remove-all-head (head)
+  "remove head on all screens"
+  (mapcar (lambda (screen)
+            (remove-head screen head))
+          (cons (meta-space-screen *metaspace*)
+                (mapcar #'ws-screen (hash-table-values workspace-hash)))))
+
+;; (print (split-head-by (current-head) 4))
 
 #|
 Thoughts:
@@ -292,7 +353,6 @@ I could also display text on each screenshot with the name of each group.
 ;;                       (ws-screen (current-ws))))
 
 ;; (dump-screen (current-screen))
-(dump-group-to-file "group-4x4")
 
 (defcommand display-ws () ()
   (space-this 4)
@@ -300,8 +360,10 @@ I could also display text on each screenshot with the name of each group.
   (defparameter *window-border-style* :thick)
   (desktop-ws))
 
+
 (defcommand group-update-picture () ()
-    (group-picture))
+  (group-picture))
+
 
 (defvar *desktop* (concat *stumpwm-storage* "desktop/"))
 ;; really all I need is the name, the number, and the screen
@@ -558,7 +620,9 @@ I could also display text on each screenshot with the name of each group.
 
 (defcommand init-desktop () ()
   (run-commands "enter-master-key")
-  (restore-desktop))
+  (restore-desktop)
+  ;; (start-image-loop)
+  )
 
 ;; (screen-groups (ws-screen (car (hash-table-values workspace-hash))))       ;
 

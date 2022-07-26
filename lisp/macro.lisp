@@ -225,6 +225,7 @@ Be aware that these commands won't require a prefix to run."
   (define-key *top-map* (kbd "s-'")  "replay-macros"))
 
 
+
 (ensure-keymap-escape)
 
 (defcommand keyboard-interactive-reset () ()
@@ -247,14 +248,19 @@ Be aware that these commands won't require a prefix to run."
 (defcommand reset-dotimes () ()
   (setf *dotimes-commands* nil))
 
-(defun number-times (number)
-  (bt:make-thread #'(lambda ()
-                      (reset-dotimes)
-                      (add-hook *key-press-hook* 'number-times-record-fn)
-                      (loop until *dotimes-commands* do (sleep .001))
-                      (progn (dotimes (x number)
-                               (eval-command (car (reverse *dotimes-commands*))))
-                             (remove-hook *key-press-hook* 'number-times-record-fn)))))
+(let ((top-level *standard-output*))
+  (defun number-times (number)
+    (bt:make-thread
+     #'(lambda ()
+         (reset-dotimes)
+         (add-hook *key-press-hook* 'number-times-record-fn)
+         (loop until *dotimes-commands* do (sleep .001)
+               finally
+                  (progn
+                    (dotimes (x (1- number))
+                      (format top-level "~a" (eval-command (car (reverse *dotimes-commands*)))))
+                    (remove-hook *key-press-hook* 'number-times-record-fn)))))))
+
 
 (define-key *top-map* (kbd "s-2") "eval (stumpwm::number-times 2)")
 (define-key *top-map*  (kbd "s-3") "eval (stumpwm::number-times 3)")
@@ -264,5 +270,7 @@ Be aware that these commands won't require a prefix to run."
 (define-key *top-map*  (kbd "s-7") "eval (stumpwm::number-times 7)")
 (define-key *top-map*  (kbd "s-8") "eval (stumpwm::number-times 8)")
 (define-key *top-map* (kbd "s-9") "eval (stumpwm::number-times 9)")
+
+
 
 (def-interactive-keymap)

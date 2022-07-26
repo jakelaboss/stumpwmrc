@@ -9,6 +9,7 @@
 
 (defun set-emacs-theme (theme)
   (emacs-run (format nil "(load-theme '~a)" (string-downcase theme))))
+
 (defun set-emacs-transparancy (number)
   (emacs-run
    (format nil "(set-frame-parameter (selected-frame) 'alpha '(~a . ~a))" number number))

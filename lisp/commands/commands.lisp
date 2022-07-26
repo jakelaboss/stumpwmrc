@@ -23,6 +23,33 @@
     (echo-string (current-screen)
                  (format nil "Starting swank on port ~a." port))))
 
+(defun create-client (port)
+  (usocket:with-client-socket (socket stream "127.0.0.1" port :element-type 'character)
+    (unwind-protect
+         (progn
+           (usocket:wait-for-input socket)
+           (time (read-line stream))
+           nil)
+      (usocket:socket-close socket))))
+
+(defun create-client (port buffer)
+  (let ((socket (usocket:socket-connect "127.0.0.1" port
+                                      :protocol :datagram
+                                      :element-type '(unsigned-byte 8))))
+    (unwind-protect
+         (progn
+           (format t "Sending data~%")
+           (replace buffer #(1 2 3 4 5 6 7 8))
+           (format t "Receiving data~%")
+           (usocket:socket-send socket buffer 8)
+           (usocket:socket-receive socket buffer 8)
+           (format t "~A~%" buffer))
+      (usocket:socket-close socket))))
+
+;; (create-client 4014)
+
+
+
 (defcommand swank-lan () ()
   (swank:create-server :port 4008 :style swank:*communication-style* :interface "10.10.10.230"
                        :dont-close t)
@@ -344,9 +371,6 @@ window along."
       ;;                                  '(synergy-up) *desktop-swank*)))
       (move-focus :up))
 
-(defcommand synergy-focus () ()
-  (send-meta-key *current-screen* (kbd "s-Up")))
-
 (defcommand synergy-up () ()
   (synergy-focus) nil)
 
@@ -362,9 +386,15 @@ window along."
 
 ; --- Brightness ----------------------------------------
 
-(defvar *brightness-increment* nil)
-(defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
-(defvar *keyboard-brightness-max* (read (open "/sys/class/leds/dell::kbd_backlight/max_brightness")))
+(case (hostname)
+  (vagabond
+   (defvar *brightness-increment* nil)
+   (defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
+   (defvar *keyboard-brightness-max* (read (open "/sys/class/leds/dell::kbd_backlight/max_brightness"))))
+  (development
+   (defvar *brightness-increment* nil)
+   (defvar *max-brightness* nil)
+   (defvar *keyboard-brightness-max* nil)))
 
 (defcommand set-backlight (x) ((:number "Set backlight to %: "))
   "Set backlight to a specified number out of 100"
@@ -505,11 +535,130 @@ window along."
                     (frame-width (car frames)) centered-width))
           (head-redisplay)))))
 
+;; (defun center-window (&optional (scale 1))
+;;   "Toggle centering the window in a frame"
+;;   (let* ((scale 1)
+;;          (win (frame-window (current-frame)))
+;;          (xwin (window-parent win))
+;;          (drawable-width (xlib:drawable-width xwin))
+;;          (drawable-border (xlib:drawable-border-width xwin))
+;;          (frame-width (frame-width (current-frame)))
+;;          (centered-width (* 2 (round (* scale frame-width) 4)))
+;;          (margin (+ (frame-x (current-frame))
+;;                     (/ (- (head-width (current-head))
+;;                           centered-width) 2))))
+;;     ;; now we need that number on both sides
+;;     ;; Let's make the frame width half the max * golden ratio
+
+;;     (multiple-value-bind (x y wx wy width height border stick) (geometry-hints win)
+;;       ;; Define core changes based on current state
+;;       (cond ((>= (+ drawable-width (* 2 drawable-border)) frame-width)
+;;              (setf width centered-width x margin)
+;;              (set-window-geometry win :x wx :y wy :width width :height height :border-width 0)
+;;              (xlib:with-state ((window-parent window))
+;;                (setf (xlib:drawable-x (window-parent win)) x
+;;                      ;; (xlib:drawable-border-width (window-parent win)) border
+;;                      (xlib:drawable-width xwin) width)
+;;                (xlib:change-property (window-xwin win) :_NET_FRAME_EXTENTS
+;;                                      (list wx wy (- (xlib:drawable-width (window-parent win)) width wx)
+;;                                         (- (xlib:drawable-height (window-parent win)) height wy))
+;;                                      :cardinal 32)))
+;;             ((< (+ drawable-width (* 2 drawable-border)) frame-width)
+;;              (setf width frame-width x margin)
+
+;;        (setf (xlib:drawable-width xwin) (- frame-width (* 2 drawable-border))))
+;;       (head-redisplay))
+
+;;      (> (window-x (car frames))
+;;            (head-x (current-head)))
+;;         (setf
+;;          (window-x (car frames)) (head-x (current-head))
+;;          (frame-width (car frames)) head-width)
+;;         (setf (frame-x (car frames)) margin
+;;               (frame-width (car frames)) centered-width))
+;;     (head-redisplay)
+
+
+;; (multiple-value-bind (x y wx wy width height border stick) (geometry-hints win)
+
+;;   (if *useless-gaps-on*
+;;       (setf width (- width (* 2 *useless-gaps-size*))
+;;             height (- height (* 2 *useless-gaps-size*))
+;;             x (+ x *useless-gaps-size*)
+;;             y (+ y *useless-gaps-size*)))
+
+;;   (xlib:with-state ((window-parent win))
+;;     (setf (xlib:drawable-x (window-parent win)) x
+;;           (xlib:drawable-y (window-parent win)) y
+;;           (xlib:drawable-border-width (window-parent win)) border)
+;;     ;; the parent window should stick to the size of the window
+;;     ;; unless it isn't being maximized to fill the frame.
+;;     (if (or stick
+;;            (find *window-border-style* '(:tight :none)))
+;;         (setf (xlib:drawable-width (window-parent win)) (window-width win)
+;;               (xlib:drawable-height (window-parent win)) (window-height win))
+;;         (let ((frame (window-frame win)))
+;;           (setf (xlib:drawable-width (window-parent win)) (- (frame-width frame)
+;;                                                              (* 2 (xlib:drawable-border-width (window-parent win)))
+;;                                                              (if *useless-gaps-on* (* 2 *useless-gaps-size*) 0))
+;;                 (xlib:drawable-height (window-parent win)) (- (frame-display-height (window-group win) frame)
+;;                                                               (* 2 (xlib:drawable-border-width (window-parent win)))
+;;                                                               (if *useless-gaps-on* (* 2 *useless-gaps-size*) 0)))))
+;;     ;; update the "extents"
+;;     (xlib:change-property (window-xwin win) :_NET_FRAME_EXTENTS
+;;                           (list wx wy
+;;                              (- (xlib:drawable-width (window-parent win)) width wx)
+;;                              (- (xlib:drawable-height (window-parent win)) height wy))
+;;                           :cardinal 32))
+
+
+;; (let* ((scale 1.5)
+;;        (window (frame-window (current-frame)))
+;;        (frame-width (frame-width (current-frame)))
+;;        (centered-width (print (* 2 (round (* scale frame-width) 4))))
+;;        (margin (print (+ (frame-x (current-frame))
+;;                    (/ (- (frame-width (current-frame))
+;;                          centered-width) 2)))))
+
+;;   (setf (window-x window) margin
+;;         (window-width window) centered-width)
+;;   (head-redisplay))
+
+;; (setf (frame-x (current-frame)) 3840)
+
+;; (setf (xlib:drawable-width (window-parent (current-window)))
+;;       (- (frame-width frame)
+;;          (* 2 (xlib:drawable-border-width (window-parent win)))
+;;          (if *useless-gaps-on* (* 2 *useless-gaps-size*) 0))
+;;       )
+
+;; (setf (xlib:drawable-width (window-parent win))
+;;       (- (frame-width frame)
+;;          (* 2 (xlib:drawable-border-width (window-parent win)))
+;;          (if *useless-gaps-on* (* 2 *useless-gaps-size*) 0))
+
+;;       (xlib:drawable-height (window-parent win)) (- (frame-display-height (window-group win) frame)
+;;                                                     (* 2 (xlib:drawable-border-width (window-parent win)))
+;;                                                     (if *useless-gaps-on* (* 2 *useless-gaps-size*) 0)))
+
+;; (frame-width (car (head-frames (current-group) (current-head))))
+
+;; (frame-)
+;; (print *normal-border-width*)
+;; (print *transient-border-width*)
+;; (*window- )
+;; (xwin-border-width (xlib:window (current-window)) )
+;; (window-width (frame-window (car (head-frames (current-group) (current-head)))))
+;; (head-width (current-head))
+;; (head-frames (current-group) (current-head))
+
+;; (center-frame 1.4)
+
 
 (defvar *center-scale* 1)
 
-(defcommand change-center-scale (scale) ((:number "Scale: "))
-  (if (and (> scale 0) (< scale 2))
+(defcommand change-center-scale (scale) ((:number "Scale of 1 to 10: "))
+  (if (and (> scale 0) (< scale 10))
       (setf *center-scale* scale)))
 
 (defcommand toggle-center-frame () ()

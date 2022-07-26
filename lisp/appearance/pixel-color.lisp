@@ -66,10 +66,11 @@
                  (xlib:color-blue color))))
 
 (defun grab-rgb-from-window (window x y)
-  (unless window (setf window root-window))
-  (let* ((image (xlib:get-image window :x x :y y :width 1 :height 1))
-         (d (slot-value image 'xlib::data)))
-    (list (aref d 2) (aref d 1) (aref d 0))))
+  (let ((window window))
+    (unless window (setf window root-window))
+    (let* ((image (xlib:get-image window :x x :y y :width 1 :height 1))
+           (d (slot-value image 'xlib::data)))
+      (list (aref d 2) (aref d 1) (aref d 0)))))
 
 (defun grab-from-screen (window x y)
   (unless window (setf window root-window))

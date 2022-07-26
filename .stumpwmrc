@@ -2,9 +2,6 @@
 
 ;; Copyright © 2016-2020 Jake LaBossier <jakelaboss@gmail.com>
 
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 ;;; Commentary:
 
 ;; This file should be symlinked to "~/.stumpwmrc".
@@ -16,30 +13,37 @@
 
 (in-package :stumpwm)
 
-(load (car (directory "/home/vagabond/.emacs.d/elpa/slime-*/swank-loader.lisp")))
+;; (load (car (directory "/home/vagabond/.emacs.d/elpa/slime-*/swank-loader.lisp")))
 
+;; (load (car (directory "/home/vagabond/.emacs.d/elpa/29.0/develop/slime-20220107.1248/swank-loader.lisp")))
+(load (car (directory "/home/vagabond/.emacs.d/elpa/*/*/slime-*/swank-loader.lisp")))
 
 (load "/home/vagabond/quicklisp/setup.lisp")
 
 (mapcar  #'(lambda (file)
              (load (concat"/home/vagabond/common-lisp/libraries/linux/stumpwm/lisp/" file)))
-         '("load.lisp"
+         '(
+         "load.lisp"
            "var/global.lisp"
            "startup/startup.lisp"
            "vim.lisp"
-           "appearance/emacs.lisp"
+           ;; "appearance/emacs.lisp"
+           "appearance/pixel-color.lisp"
+           "appearance/hue.lisp"
            "appearance.lisp"
            "commands/sudo.lisp"
            "commands/commands.lisp"
            "commands/golden-ratio.lisp"
-           "commands/tile-group.lisp"
-           "commands/screen-commands.lisp"
+           "commands/workspaces.lisp"
            "commands/browser.lisp"
            "macro.lisp"
            ;; "modules.lisp"
            "keymap.lisp"
            "map.lisp"
            "network.lisp"
+           "commands/desktop/frame-split.lisp"
+           "commands/desktop/head.lisp"
+           "commands/desktop.lisp"
            ))
 
 ;;; END init.lisp

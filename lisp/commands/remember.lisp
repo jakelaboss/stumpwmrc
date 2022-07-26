@@ -8,7 +8,7 @@
 ;; the workspace
 
 (defun remember-all () ()
-"Similiar to remember-group except all information is dumped, useful
+  "Similiar to remember-group except all information is dumped, useful
 for next startup or recalling all undo actions."
   (dump-to-datadir "rules") (dump-to-datadir "desktop"))
 
@@ -70,7 +70,6 @@ for next startup or recalling all undo actions."
 (dump-desktop-to-file "test")
 (dum)
 (restore-screen (current-screen) )
-)
 
 ;; dump [current]-group (for current-screen), [current]-screen, desktop or window-placement-rules
 ;; to a dynamically named file in user defined *data-dir*.

@@ -18,12 +18,11 @@
         do (xwin-grab-keys (screen-focus-window i) (screen-current-group i)))
   (xlib:display-finish-output *display*))
 
-
 ;; Applications ;;
 (defvar *application-bindings*
   (let ((m (make-sparse-keymap)))
     ;; (define-key m (kbd "e") "gnext")
-    (define-key m (kbd "e") "exec sh -c \"emacsclient -c .\"")
+    (define-key m (kbd "e") "exec sh -c \"emacsclient -n -c -e \\\"(deer)\\\" \" ")
     ;; (define-key m (kbd "E") "exec sh -c \"emacs --eval \"(setq server-name \\\"work\\\")\" --daemon\"")
     (define-key m (kbd "E") "exec sh -c \"prime-run emacs\"")
     (define-key m (kbd "a") "exec arandr")

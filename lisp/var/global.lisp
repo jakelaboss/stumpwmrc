@@ -1,11 +1,21 @@
 ;; Global Variables
 (in-package :stumpwm)
+
 (ql:quickload '(:hyperluminal-mem :osicat :lparallel :sosei :s-base64))
+
+(defmacro defhash (name)
+  `(defparameter ,name (make-hash-table :test 'equal)))
+
+(defun find-thread (search)
+  (find-if (lambda (thread) (cl-ppcre:scan search (sb-thread:thread-name thread)))
+           (sb-thread:list-all-threads)))
+
+(defun hostname ()
+  (read (open "/etc/hostname")))
 
 (defvar *pg-data* "/var/lib/postgres/data")
 (defvar *useless-gaps-size* 10)
 (defvar *useless-gaps-on* nil)
-(defvar *max-brightness* (read (open "/sys/class/backlight/intel_backlight/max_brightness")))
 
 (setf sosei::*sosei-dir* "/home/vagabond/common-lisp/libraries/linux/stumpwm/storage/")
 
@@ -32,9 +42,12 @@
 (defparameter *github-token* (sosei:pread* "keys/github-token"))
 (defparameter *salt* (sosei:pread* "keys/salt"))
 (defparameter *lisp-password* (sosei:pread* "keys/password"))
+(defparameter *master-password* (sosei:pread* "keys/master"))
 (defparameter *root-password* (sosei:pread* "keys/root"))
 (defparameter *postgres-password* (sosei:pread* "keys/postgres"))
 
+;; (store-password "keys/github-token" "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")
 
 (defparameter *transient-border-width* 1)
 (defparameter *window-border-style* :thin)
+

@@ -155,6 +155,7 @@
                       (sudo-run (format nil "ip link set ~a down" *device*))
                       (if network (net (car network) known-networks))))))))
 
+
 ;;   (if (null (cl-ppcre:scan-to-strings network known-networks))
 ;;       (add-to-known-networks network)
 ;;       (sudo-run (format nil "netctl switch-to ~a" network))))
@@ -174,6 +175,32 @@
 
 (defcommand remove-network-p (network p) ((:string) (:y-or-n "Remove This Network? "))
   (if p (sudo-run (format nil "rm /etc/netctl/~a" network)) nil))
+
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+;; Ethernet
+;;------------------------------------------------------------------------------------------------------------------------ ;;
+(defun format-run (command &rest args)
+  (sudo-run (apply #'format nil command args)))
+
+(defun get-device ()
+  (let* ((link (format-run "ip link"))
+         (start (car (list (cl-ppcre:scan "enp" link)))))
+    (subseq link start (car (list (cl-ppcre:scan ": <B" link :start start))))))
+
+(defun ethernet-connect ()
+  (let ((enp (get-device)))
+    (if enp
+        (progn
+          (if (net-status *device*)
+              (format-run "ip link set ~a down" *device*))
+          (format-run "dhcpcd ~a" enp))
+        "No ethernet device found.")))
+
+(defcommand switch-to-ethernet (p) ((:y-or-n "This will disconnect you from wifi. Continue? "))
+  (if p (fork-command (ethernet-connect)) "Canceled."))
+
+;;------------------------------------------------------------------------------------------------------------------------ ;;
 
 ; --- VPN ----------------------------------------
 ;; TODO create a VPN interface

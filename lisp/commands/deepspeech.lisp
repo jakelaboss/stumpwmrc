@@ -19,16 +19,16 @@
 (defcommand mic-toggle () ()
   (toggle-mic))
 
-(activate-topmap)
+;; (activate-topmap)
 ;; (hash-table-alist clifford::*atlas-hash*)
-(ensure-clifford)
+;; (ensure-clifford)
 ;; (define-rooms)
-(stop-clifford)
+;; (stop-clifford)
 ;; (active-atlas-name)
 ;; (atlas-map *speech-map*)
 ;; (activate-atlas (gethash 'clifford::*music* clifford::*atlas-hash*))
 ;; (reset-results)
-(read-results)
+;; (read-results)
 
 
 ;; let's discuss creating a language for defining commands
@@ -43,7 +43,7 @@
 (defpattern *speech-map* (("I'm" 0) (good great)) ()
   (Thats good to hear))
 
-(defpattern *speech-map* (how are you doing) ()
+(defpattern *speech-map* (how (were are) you doing) ()
   ("I'm" great "today." Thanks for "asking."))
 
 (defpattern *speech-map* ((what 1) (time 1) is)
@@ -61,6 +61,10 @@
 ;; --- Lights ----------------------------------------
 
 ;; living room
+
+(defpattern *speech-map* (connect to lights)
+            (progn (bridge) (define-rooms)))
+
 (defpattern *speech-map* ((living 2) room (on 0))
             (stumpwm::turn-living-room-on))
 
@@ -114,7 +118,7 @@
 (defpattern *speech-map* ((bedroom bedrooms) (reading 1))
             (set-state-of-room *bedroom* reading-values))
 
-(defpattern *speech-map* ((list ) (light lights) (sets set)) ()
+(defpattern *speech-map* ((list) (light lights) (sets set)) ()
   (current light presets forest sunset twilight "nebula," and reading))
 
 ;; light layer
@@ -274,4 +278,3 @@
 (defpattern *workspace*  ((browse brows)) (switch-to-group-by-name "browse-main"))
 (defpattern *workspace*  (relax) (switch-to-group-by-name "relax"))
 (defpattern *workspace*  (work) (switch-to-group-by-name "work"))
-

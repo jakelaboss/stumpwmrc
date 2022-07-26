@@ -35,11 +35,13 @@
   (:active-ws nil))
 
 (defcommand refresh-all-heads () ()
-  (mapcar (lambda (screen)
-            (head-force-refresh screen
-                                (make-screen-heads screen (screen-root screen))))
-          (cons (meta-space-screen *metaspace*)
-                (mapcar #'ws-screen (hash-table-values workspace-hash)))))
+  (handler-case
+      (mapcar (lambda (screen)
+                (head-force-refresh screen
+                                    (make-screen-heads screen (screen-root screen))))
+              (cons (meta-space-screen *metaspace*)
+                    (mapcar #'ws-screen (hash-table-values workspace-hash))))
+    (error () nil)))
 
 (defun move-group-to-screen (group screen)
   (let ((g group)
@@ -186,7 +188,7 @@
                      (cons ws group)))
                   (screen-groups screen))))
 
-(defun ws-groups-all ()
+(defun select-group-all ()
   (let* ((screens (hash-table-values workspace-hash))
          (names (mapcan (lambda (ws)
                           (if (ws-active-p ws)
@@ -195,12 +197,15 @@
                         screens))
          (p (position (format-group-for-menu (current-group))
                       names :test 'equal :key 'car)))
-    (when-let ((result (second (select-from-menu (current-screen)
-                                                 names "Select: " (if (null p) 0 p)))))
-      (if (listp result)
-          (progn (switch-to-workspace (car result))
-                 (switch-to-group (cdr result)))
-          (switch-to-workspace result)))))
+    (second (select-from-menu (current-screen)
+                       names "Select: " (if (null p) 0 p)))))
+
+(defun ws-groups-all ()
+  (when-let ((result (select-group-all)))
+    (if (listp result)
+        (progn (switch-to-workspace (car result))
+               (switch-to-group (cdr result)))
+        (switch-to-workspace result))))
 
 (defun switch-to-group-by-name (name)
   (let* ((screens (hash-table-values workspace-hash))
@@ -210,10 +215,13 @@
                                       (cons group ws))
                                     (screen-groups screen))))
                         screens))
-         (group (find-if #'(lambda (x) (equal name (group-name x)))
+         (group (find-if #'(lambda (x)
+                             (equal name (group-name x)))
                          names :key 'car)))
     (switch-to-workspace (cdr group))
     (switch-to-group (car group))))
+
+;; (defun ws-move )
 
 ;; Helpful workspace functions
 (defun screen-workspace (screen)
@@ -332,8 +340,49 @@ for the screen on the ws"
     (when (ws-prev)
       (move-window-to-group win (current-group)))))
 
+(defcommand ws-next-marked () ()
+  "move the marked windows to the next workspace."
+  (let ((group (current-group)))
+    (when (ws-next)
+      (let ((to-group (current-group)))
+        (dolist (i (marked-windows group))
+          (setf (window-marked i) nil)
+          (move-window-to-group i to-group))))))
+
+(defcommand ws-prev-marked () ()
+  "move the marked windows to the prev workspace."
+  (let ((group (current-group)))
+    (when (ws-prev)
+      (let ((to-group (current-group)))
+        (dolist (i (marked-windows group))
+          (setf (window-marked i) nil)
+          (move-window-to-group i to-group))))))
+
+(define-stumpwm-type :all-group (input prompt)
+  (declare (ignorable input prompt))
+  (let ((match (select-group-all)))
+    (or match
+       (throw 'error "No such group."))))
+
+(defcommand ws-gmove-marked (group) ((:all-group "Group to move to: "))
+  "move the marked windows to the prev workspace."
+  (let ((ws (car group))
+      (to-group (cdr group)))
+    (dolist (i (marked-windows (current-group)))
+      (setf (window-marked i) nil)
+      (move-window-to-group i to-group))
+    (switch-to-workspace ws)
+    (switch-to-group to-group)))
+
 (defcommand grouplist-all () ()
   (ws-groups-all))
+
+(defun select-all-group ()
+  (select-from-menu (current-screen)
+                    (reverse (mapcar (lambda (g)
+                                       (cons (format nil "~a:~a" (car g) (ws-name (cdr g))) (cdr g)))
+                                     (hash-table-alist workspace-hash)))
+                    "Workspaces: "))
 
 (defcommand ws-select () ()
   (when-let ((ws (cdr (select-from-menu (current-screen)

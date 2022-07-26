@@ -34,12 +34,12 @@
 ;; (defparameter username (sosei:pread* "keys/hue-light-username-home"))
 
 (defparameter *bridge* nil)
+;; (defparameter *bridge* "192.168.0.179")
 
 (defun bridge ()
   (if *bridge* *bridge*
-      (let ((br (cl-hue:make-bridge (hue-bridge-address) username)))
-        (defparameter *bridge* br)
-        br)))
+      (let ((address (hue-bridge-address)))
+        (defparameter *bridge* (cl-hue:make-bridge address username)))))
 
 (defun get-light-state (light)
   (list (slot-value (cl-hue:get-light (bridge) light) 'cl-hue::hue)
@@ -66,6 +66,10 @@
   (defparameter *living-room* (alist-hash-table (subseq (hash-table-alist *room*) 3)))
   (defparameter *bedroom* (alist-hash-table (subseq (hash-table-alist *room*) 0 3))) ;; just the first 3
   )
+
+(defun init-hue ()
+  (if (bridge)
+      (define-rooms)))
 
 (defun set-light-hue (light brightness hue sat)
   (cl-hue:set-light-state-by-number

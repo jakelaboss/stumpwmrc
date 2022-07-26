@@ -14,9 +14,6 @@
   (with-display host (display screen root-window)
     (xlib:get-image root-window :x 0 :y 0 :width (xlib:screen-width screen) :height (xlib:screen-height screen))))
 
-(xlib:get-i)
-
-
 (ql:quickload :clx)
 
 (defun pop-up-window (&optional (host ""))
@@ -51,6 +48,121 @@
 ;; (xlib:destroy-window win)
 ;; (xlib:close-display display)))
 
+(in-package :stumpwm)
+
+(let ((frame (current-frame)))
+  (grab-rgb-from-window (window-xwin (frame-window frame))
+                        (- 10 (frame-x frame)) (- 10 (frame-y frame))))
+
+(ql:quickload '(:imago :clx :stumpwm))
+
+(ql:quickload :jpeg-turbo)
+
+(defvar test-image (imago:read-png "/home/vagabond/test.png"))
+
+(slot-value test-image 'imago:image-colormap )
+
+(imago:image-colormap
+ (sb-mop:class-slots (class-of test-image)))
+
+(print (array-dimensions (imago:image-pixels test-image)))
+
+(setf *print-length* 10)
+
+(defun array-to-list (array)
+  (labels ((collect-row (dims ref-list)
+             (cond ((car dims)
+                    (loop for x below (car dims)
+                          collect
+                          (let ((ref (cons x ref-list)))
+                            (if (cadr dims)
+                                (collect-row (cdr dims) ref)
+                                (apply #'aref array (reverse ref)))))))))
+    (let ((dims (array-dimensions array)))
+      (collect-row dims nil))))
+
+(dec-to-hex 4285094947)
+
+
+(defun dec-to-hex (dec)
+  (write-to-string dec :base 16))
+
+(defun hex-to-rgb (string)
+  "Parse hexadecimal notation (eg ff0000 or f00 for red) into an RGB color."
+  (let ((len (length string)))
+    (flet ((parse (index)
+             (parse-integer string
+                            :start (* index 2)
+                            :end   (* (1+ index) 2)
+                            :radix 16)))
+      (cons (parse 0)
+            (cons (parse 1)
+                  (cons (parse 2)
+                        (if (= len 8) (list (parse 3)) nil)))))))
+
+(equal (list 40 40 40) (list 40 40 40))
+
+(hex-to-rgb (dec-to-hex 4280821800))
+(parse-integer "28" :radix 16)
+
+(aref )
+
+(defun compare-image-data (image data)
+  (let ((width) ;; data is the pixels from right to left and up to down in rows
+      (new-image (imago:image-pixels (imago:read-image "/home/vagabond/test.png")))))
+  (labels ((compare-row (height row)
+             (loop :for y :from 0 :to height by 3  ;; every 3rd
+                   :do (loop :for x :from row :to (+ row width) by 3
+                             :do (if (not (equal (list (aref image x y)
+                                                   (aref image (+ 1 x) (+ 1 y))
+                                                   (aref image (+ 2 x) (+ 2 y)))
+                                                (aref data (* x y))))
+                                     (setf (aref data (* x y))))
+                             )
+                   )
+             )))
+  )
+
+
+(defparameter test-image (time (imago:read-image
+                           "/home/vagabond/test.png")))
+
+(setf *print-length* 100)
+(print (* 4 (* 3840 2160)))
+
+(let ((x 0) (y 0)
+    (wx 140) (wy 100))
+  (let* ((xwin root-window)
+         (window (xwin-to-window xwin))
+         (test-image (imago:image-pixels test-image)))
+    (unless window (setf window root-window))
+    (let ((width (window-width window))
+        (height (window-height window)))
+      (let* ((image (xlib:get-image xwin :x x :y y :width width :height height))
+             ;; (xlib:image-pixmap )
+             (d (slot-value image 'xlib::data))
+             (i (+ (* 4 wx) (* 4 wy width))))
+        (print (list (aref d i)
+                  (aref d (+ 1 i))
+                  (aref d (+ 2 i))
+                  (aref d (+ 3 i))))
+        (print (reverse (hex-to-rgb (dec-to-hex (aref test-image wy wx)))))
+        ;; (print (loop :for z :from 0 :to y
+        ;;              :collect (hex-to-rgb (dec-to-hex (aref test-image z x)))))
+
+        ;; (print (sb-mop:class-slots (class-of image)))
+        ;; (print (array-dimensions d))
+        ;; (copy-array d)
+        ))))
+
+    ;; (list (aref d 2) (aref d 1) (aref d 0))))
+
+
+(setf *print-length* 100)
+(let* ((image (time (xlib:get-image root-window :x 0 :y 0 :width 3840 :height 2160)))
+       (d (slot-value image 'xlib::data)))
+  (print (array-dimensions d))
+  (list (aref d 2) (aref d 1) (aref d 0)))
 
 (setf testvar (take-screenshot))
 (xlib:save-s)

@@ -371,8 +371,46 @@
    (car (cl-ppcre:split #\Newline (read-file-into-string "/sys/class/power_supply/BAT0/capacity")))))
 
 (defun cpu-temp ()
-  (with-open-file (s "/sys/class/hwmon/hwmon0/temp1_input")
-    (setf *cpu-temp* (format nil "~a" (float (/ (read s) 1000))))))
+  (handler-case
+      (with-open-file (s "/sys/class/hwmon/hwmon6/temp1_input")
+        (setf *cpu-temp* (format nil "~a" (float (/ (read s) 1000)))))
+    (error nil)))
+
+(defvar *battery-loop* nil)
+
+(defun battery-loop ()
+  (bt:make-thread
+   (lambda ()
+     (loop while *battery-loop*
+           do (let* ((state (mode-power))
+                     (p (parse-integer (cdr state))))
+                (cond ((equal (car state) "Charging")
+                       (sleep 60))
+                      ((<= p 5)
+                       (message (format nil "Battery Critical, plug me in!"))
+                       (sleep 10))
+                      ((<= p 15)
+                       (message (format nil "Battery at ~a%, please plug in a charger." p))
+                       (sleep 20))
+                      ((<= p 25)
+                       (message (format nil "Battery at ~a%, Consider plugging in a charger." p))
+                       (sleep 60))
+                      (t (sleep 60))))))
+   :name "Battery Loop"))
+
+(defun find-thread (scan)
+  (find-if  #'(lambda (x) (cl-ppcre:scan scan (bt:thread-name x)))
+            (sb-thread:list-all-threads)))
+
+(defun battery-loop-toggle ()
+  (cond (*battery-loop*
+         (setf *battery-loop* nil)
+         (let ((thread (find-thread "Battery Loop")))
+           (if thread (bt:destroy-thread thread))))
+        (t (setf *battery-loop*
+                 (battery-loop)))))
+
+(battery-loop-toggle)
 
 (defvar *mode-loop* t)
 
@@ -383,23 +421,24 @@
             (loop while *mode-loop*
                   do (setf *screen-mode-line-format*
                            (list " | "
-                              (unwind-protect (mode-time))
-                              " | Battery: "
-                              (unwind-protect (car (mode-power))) ", "
-                              (unwind-protect (cdr (mode-power))) "%"
-                              " | Brightness: "
-                              (unwind-protect (get-backlight-percent))
-                              ;; "| Network Status: "
-                              ;; '(#.:eval (unwind-protect (net-status "wlo1")))
-                              ;; "| | %c %f "
-                              " | Temp: "
-                              (unwind-protect (cpu-temp))
-                              " | Group: %g | "
-                              ;; "%W | "
-                              ))
+                                 (unwind-protect (mode-time))
+                                 " | Battery: "
+                                 (unwind-protect (car (mode-power))) ", "
+                                 (unwind-protect (cdr (mode-power))) "%"
+                                 " | Brightness: "
+                                 (unwind-protect (get-backlight-percent))
+                                 ;; "| Network Status: "
+                                 ;; '(#.:eval (unwind-protect (net-status "wlo1")))
+                                 ;; "| | %c %f "
+                                 " | Temp: "
+                                 (unwind-protect (cpu-temp))
+                                 " | Group: %g | "
+                                 ;; "%W | "
+                                 ))
                      (sleep 10))))
    :name "Mode Loop"))
 
 (defvar *mode-thread* (mode-loop))
+;; (bt:destroy-thread (find-thread "Mode"))
 
  ;;------------------------------------------------------------------------------------------------------------------------ ;;

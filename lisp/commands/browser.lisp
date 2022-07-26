@@ -7,10 +7,8 @@
   `(let (x)
      (mapcar (lambda (x) ,function) ,list)))
 
-;; (defvar *session-file* "home/vagabond/.mozilla/firefox/ay5hga16.dev-edition-default/sessionstore-backups/recovery.jsonlz4 ")
 (defparameter *session-file*
   (namestring (car (directory "/home/vagabond/.mozilla/firefox/*.dev-edition-default/sessionstore-backups/recovery.jsonlz4"))))
-
 
 (defvar *menu-max-length* 20)
 
@@ -34,27 +32,24 @@
       "],")
      1))))
 
-
 (defun all-workspace-windows ()
   "All windows on all screens"
-  (remove nil (flat-list
-             (copy-seq
-              (amapcar
-               (if (eql (current-ws) x)
-                   (screen-windows (current-screen))
-                   (screen-windows (ws-screen x)))
-               (hash-table-values workspace-hash))))))
+  (let (windows)
+    (maphash-values
+     #'(lambda (x)
+         (if (eql (current-ws) x)
+             (push (screen-windows (current-screen)) windows)
+             (push (screen-windows (ws-screen x)) windows)))
+     workspace-hash)
+    (flat-list windows)))
 
 (defun current-windows ()
   "Get current browser window names and object"
-  (remove nil (mapcar #'(lambda (x)
-                        (let ((b (cl-ppcre:scan-to-strings ".+(?= — Firefox)" (window-name x))))
-                          (if b (cons b x))))
-                    (all-workspace-windows))))
-
-
-
-;; (current-windows)
+  (let (windows)
+    (dolist (x (all-workspace-windows))
+      (let ((b (cl-ppcre:scan-to-strings ".+(?= — Firefox)" (window-name x))))
+        (if b (setf windows (cons (cons b x) windows )))))
+    windows))
 
 (defun browser-session-check (session)
   (let ((tabs (mapcar #'(lambda (tab)
@@ -106,7 +101,6 @@
                              (bound-check-menu menu))
                       (typing-action menu (first key-seq)))))))
       (unmap-all-message-windows))))
-
 
 ;; (defun switch-to-tab (tab-name)
 ;;   (if (cl-ppcre:scan "Firefox" (window-name (current-window)))

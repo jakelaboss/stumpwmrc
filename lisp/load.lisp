@@ -8,6 +8,7 @@
 
 (in-package :stumpwm)
 
+
 (load "/home/vagabond/quicklisp/setup.lisp")
 ;; (load "/home/vagabond/quicklisp/dists/quicklisp/software/closer-mop-20170830-git/closer-mop.asd")
 ;; (load "/home/vagabond/quicklisp/dists/quicklisp/software/inferior-shell-20160929-git/inferior-shell.asd")
