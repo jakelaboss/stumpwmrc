@@ -46,7 +46,7 @@
 (defparameter *root-password* (sosei:pread* "keys/root"))
 (defparameter *postgres-password* (sosei:pread* "keys/postgres"))
 
-;; (store-password "keys/github-token" "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")
+
 
 (defparameter *transient-border-width* 1)
 (defparameter *window-border-style* :thin)
